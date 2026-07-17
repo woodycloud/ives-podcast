@@ -32,7 +32,7 @@ interface PodcastContextType {
   setCustomUserId: (id: string) => Promise<boolean>;
   isOnline: boolean;
   syncStatus: "idle" | "syncing" | "success" | "error";
-  triggerSync: (customId?: string) => Promise<void>;
+  triggerSync: (customId?: string, forceOverwriteServer?: boolean) => Promise<void>;
 
   // Subscriptions
   subscriptions: PodcastInfo[];
@@ -243,7 +243,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   // Sync with Server (Auto-sync)
-  const triggerSync = async (customId?: string) => {
+  const triggerSync = async (customId?: string, forceOverwriteServer: boolean = false) => {
     const targetId = customId || userId;
     if (!targetId || !isOnline) return;
 
@@ -251,32 +251,36 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       // 1. Fetch current subscriptions from DB
       const localSubs = await db.getAllSubscriptions();
+      let mergedList = localSubs;
 
-      // 2. Fetch remote subscriptions from server
-      const response = await fetch(`/api/sync?userId=${encodeURIComponent(targetId)}`);
-      if (!response.ok) throw new Error("Sync failed");
-      const data = await response.json();
-      const remoteSubs: PodcastInfo[] = data.subscriptions || [];
+      if (!forceOverwriteServer) {
+        // 2. Fetch remote subscriptions from server
+        const response = await fetch(`/api/sync?userId=${encodeURIComponent(targetId)}`);
+        if (!response.ok) throw new Error("Sync failed");
+        const data = await response.json();
+        const remoteSubs: PodcastInfo[] = data.subscriptions || [];
 
-      // 3. Merge: If differences, we merge them (taking latest/union)
-      const mergedMap = new Map<string, PodcastInfo>();
-      
-      // Load remote first
-      remoteSubs.forEach(s => mergedMap.set(s.feedUrl, s));
-      // Load local (local overwrites/adds since user interacts here)
-      localSubs.forEach(s => {
-        const existing = mergedMap.get(s.feedUrl);
-        if (!existing || s.subscribedAt > existing.subscribedAt) {
-          mergedMap.set(s.feedUrl, s);
+        // 3. Merge: If differences, we merge them (taking latest/union)
+        const mergedMap = new Map<string, PodcastInfo>();
+        
+        // Load remote first
+        remoteSubs.forEach(s => mergedMap.set(s.feedUrl, s));
+        // Load local (local overwrites/adds since user interacts here)
+        localSubs.forEach(s => {
+          const existing = mergedMap.get(s.feedUrl);
+          if (!existing || s.subscribedAt > existing.subscribedAt) {
+            mergedMap.set(s.feedUrl, s);
+          }
+        });
+
+        mergedList = Array.from(mergedMap.values());
+
+        // 4. Save merged back to DB and State
+        for (const sub of mergedList) {
+          await db.saveSubscription(sub);
         }
-      });
-
-      const mergedList = Array.from(mergedMap.values());
-
-      // 4. Save merged back to DB and State
-      for (const sub of mergedList) {
-        await db.saveSubscription(sub);
       }
+
       setSubscriptions(mergedList);
 
       // 5. Send updated list to Server
@@ -311,8 +315,8 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
 
     if (isOnline) {
-      // Push changes to server asynchronously
-      setTimeout(() => triggerSync(), 500);
+      // Push changes to server asynchronously, forcing overwrite
+      setTimeout(() => triggerSync(userId, true), 500);
     }
   };
 
@@ -321,8 +325,8 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSubscriptions(prev => prev.filter(s => s.feedUrl !== feedUrl));
 
     if (isOnline) {
-      // Push changes to server asynchronously
-      setTimeout(() => triggerSync(), 500);
+      // Push changes to server asynchronously, forcing overwrite
+      setTimeout(() => triggerSync(userId, true), 500);
     }
   };
 
