@@ -10,49 +10,49 @@ interface Category {
 const CATEGORIES: Category[] = [
   {
     id: "tech",
-    title: "科技与未来",
+    title: "Tech & Future",
     query: "Technology",
     gradient: "from-blue-400 to-indigo-500",
   },
   {
     id: "business",
-    title: "商业与金融",
+    title: "Business & Finance",
     query: "Business",
     gradient: "from-emerald-400 to-teal-500",
   },
   {
     id: "culture",
-    title: "人文与历史",
+    title: "Culture & History",
     query: "History",
     gradient: "from-amber-400 to-orange-500",
   },
   {
     id: "news",
-    title: "新闻与社会",
+    title: "News & Society",
     query: "News",
     gradient: "from-rose-400 to-red-500",
   },
   {
     id: "science",
-    title: "科学与新知",
+    title: "Science & Discovery",
     query: "Science",
     gradient: "from-cyan-400 to-blue-500",
   },
   {
     id: "design",
-    title: "艺术与设计",
+    title: "Arts & Design",
     query: "Design",
     gradient: "from-purple-400 to-pink-500",
   },
   {
     id: "life",
-    title: "生活与成长",
+    title: "Lifestyle & Health",
     query: "Health",
     gradient: "from-violet-400 to-purple-500",
   },
   {
     id: "comedy",
-    title: "幽默与喜剧",
+    title: "Comedy & Humour",
     query: "Comedy",
     gradient: "from-fuchsia-400 to-rose-500",
   },
@@ -65,7 +65,7 @@ interface SearchCategoryGridProps {
 export const SearchCategoryGrid: React.FC<SearchCategoryGridProps> = ({ onSelectCategory }) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-bold text-neutral-800 px-1">探索热门分类</h3>
+      <h3 className="text-sm font-bold text-neutral-800 px-1">Explore Popular Categories</h3>
       <div className="grid grid-cols-2 gap-3.5">
         {CATEGORIES.map((cat) => (
           <button

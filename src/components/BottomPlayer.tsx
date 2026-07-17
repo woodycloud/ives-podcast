@@ -65,12 +65,12 @@ export const BottomPlayer: React.FC = () => {
     if (navigator.share) {
       navigator.share({
         title: currentEpisode.title,
-        text: `我正在收听播客《${currentEpisode.title}》，推荐你一起听听！`,
+        text: `I am listening to "${currentEpisode.title}" on Minimalist Podcast, highly recommended!`,
         url: window.location.href,
       }).catch(err => console.error(err));
     } else {
       navigator.clipboard.writeText(currentEpisode.audioUrl);
-      alert("播客音频链接已复制到剪贴板");
+      alert("Podcast audio link copied to clipboard");
     }
   };
 
@@ -118,10 +118,10 @@ export const BottomPlayer: React.FC = () => {
                   {currentEpisode.title}
                 </p>
                 <p className="text-[10px] text-neutral-500 truncate flex items-center">
-                  <span>{currentEpisode.podcastTitle || "未知节目"}</span>
+                  <span>{currentEpisode.podcastTitle || "Unknown Podcast"}</span>
                   {isEpDl && (
                     <span className="ml-1.5 px-1 py-0.2 bg-neutral-100 text-neutral-600 rounded-[3px] scale-90 origin-left">
-                      已下载
+                      Downloaded
                     </span>
                   )}
                 </p>
@@ -182,7 +182,7 @@ export const BottomPlayer: React.FC = () => {
                 <ChevronDown className="w-5 h-5" />
               </button>
               <span className="text-xs font-semibold tracking-wider text-neutral-400 uppercase">
-                正在播放
+                Now Playing
               </span>
               <button
                 id="player-share"
@@ -243,7 +243,7 @@ export const BottomPlayer: React.FC = () => {
                     <div className="flex items-center justify-between mb-4 pb-2 border-b border-neutral-200">
                       <h3 className="font-bold text-neutral-800 text-sm flex items-center">
                         <FileText className="w-4 h-4 mr-1.5 text-neutral-500" />
-                        节目详情 / 播放说明
+                        Episode Details / Show Notes
                       </h3>
                       <span className="text-[10px] text-neutral-400">EPISODE NOTES</span>
                     </div>
@@ -253,7 +253,7 @@ export const BottomPlayer: React.FC = () => {
                         dangerouslySetInnerHTML={{ __html: currentEpisode.showNotes }}
                       />
                     ) : (
-                      <p className="text-xs text-neutral-400 italic">本单集暂无详细说明。</p>
+                      <p className="text-xs text-neutral-400 italic">No notes available for this episode.</p>
                     )}
                   </motion.div>
                 )}
@@ -300,7 +300,7 @@ export const BottomPlayer: React.FC = () => {
                       <button
                         onClick={() => downloadEpisode(currentEpisode, currentEpisode.podcastTitle || "")}
                         className="w-9 h-9 rounded-full bg-neutral-50 hover:bg-neutral-100 flex items-center justify-center text-neutral-600 active:scale-95 transition-all"
-                        title="下载此单集到本地"
+                        title="Download episode"
                       >
                         <Download className="w-4 h-4" />
                       </button>
@@ -360,7 +360,7 @@ export const BottomPlayer: React.FC = () => {
                     }`}
                   >
                     <Activity className="w-3.5 h-3.5" />
-                    <span>播放器</span>
+                    <span>Player</span>
                   </button>
                   <button
                     onClick={() => setShowNotes(true)}
@@ -371,7 +371,7 @@ export const BottomPlayer: React.FC = () => {
                     }`}
                   >
                     <FileText className="w-3.5 h-3.5" />
-                    <span>查看介绍</span>
+                    <span>Show Notes</span>
                   </button>
                 </div>
               </div>

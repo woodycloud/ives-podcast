@@ -84,7 +84,7 @@ const AppContent: React.FC = () => {
             title: item.collectionName,
             author: item.artistName,
             artwork: item.artworkUrl600 || item.artworkUrl100,
-            description: item.genres?.join(" / ") || "精品播客节目"
+            description: item.genres?.join(" / ") || "Curated Show"
           }));
           setRecommendations(mapped);
         } else {
@@ -95,53 +95,53 @@ const AppContent: React.FC = () => {
         // Robust fallback data with both Chinese and mainstream overseas/English podcasts
         setRecommendations([
           {
-            title: "故事FM",
-            author: "故事FM",
+            title: "Story FM (故事FM)",
+            author: "Story FM",
             artwork: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/a4/be/13/a4be139e-d311-66ca-68e1-5b7fb5570fa5/mza_10385972828458739679.jpg/600x600bb.jpg",
             feedUrl: "https://feed.xyzcdn.net/storyfm",
-            description: "社会与文化"
+            description: "Society & Culture"
           },
           {
-            title: "声东击西",
+            title: "声东击西 (ETW)",
             author: "声动活泼",
             artwork: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/58/b5/e0/58b5e003-81b3-6bf2-72e2-95f32b8fa21a/mza_13491456249568779948.jpg/600x600bb.jpg",
             feedUrl: "https://feed.xyzcdn.net/shengdongjixi",
-            description: "科技与人文"
+            description: "Tech & Culture"
           },
           {
             title: "The Daily",
             author: "The New York Times",
             artwork: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/91/3c/64/913c640c-39a7-9877-c990-252fc9969efd/mza_10777592473859600100.jpg/600x600bb.jpg",
             feedUrl: "https://feeds.simplecast.com/54nAGgIl",
-            description: "新闻与时事"
+            description: "News & Politics"
           },
           {
             title: "TED Talks Daily",
             author: "TED",
             artwork: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/ae/16/81/ae168128-d88f-16b7-f0c2-3e28c460d3d5/mza_11679093405798935406.jpg/600x600bb.jpg",
             feedUrl: "https://feeds.feedburner.com/tedtalksdaily",
-            description: "科学与教育"
+            description: "Science & Education"
           },
           {
             title: "Huberman Lab",
             author: "Scicomm Media",
             artwork: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/9e/75/d9/9e75d9bd-5b3a-5909-5100-8809a7ca3393/mza_16698940608552309117.jpg/600x600bb.jpg",
             feedUrl: "https://feeds.megaphone.fm/hubermanlab",
-            description: "健康与科学"
+            description: "Health & Science"
           },
           {
             title: "Lex Fridman Podcast",
             author: "Lex Fridman",
             artwork: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/b9/3d/8c/b93d8c1e-35ee-a859-9742-124b89f816c1/mza_14533088922370868884.jpg/600x600bb.jpg",
             feedUrl: "https://lexfridman.com/feed/podcast/",
-            description: "技术、智能与社会"
+            description: "Tech, Intelligence & Society"
           },
           {
             title: "知行小酒馆",
             author: "有知有行",
             artwork: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/a3/52/65/a352652b-4ba5-728b-6ef9-7681f21172a5/mza_17208753239274294471.jpg/600x600bb.jpg",
             feedUrl: "https://feed.xyzcdn.net/zhixingxiaojiuguan",
-            description: "商业与理财"
+            description: "Business & Finance"
           }
         ]);
       } finally {
@@ -230,7 +230,7 @@ const AppContent: React.FC = () => {
               audioUrl: item.audioUrl,
               artwork: item.blob ? URL.createObjectURL(item.blob) : "", // blob URL
               pubDate: new Date(item.downloadedAt).toLocaleDateString(),
-              description: "本地下载单集",
+              description: "Downloaded Episode",
               showNotes: "",
               audioType: "audio/mpeg",
               audioLength: 0,
@@ -259,12 +259,12 @@ const AppContent: React.FC = () => {
     try {
       const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`);
       if (!response.ok) {
-        throw new Error("搜索失败，请稍后重试");
+        throw new Error("Search failed. Please try again later.");
       }
       const data = await response.json();
       setSearchResults(data.results || []);
     } catch (err: any) {
-      setSearchError(err.message || "请求失败，请检查您的网络连接");
+      setSearchError(err.message || "Request failed. Please check your network connection.");
     } finally {
       setSearchLoading(false);
     }
@@ -287,7 +287,7 @@ const AppContent: React.FC = () => {
   // Selected date heading for "Listen Now"
   const getFormattedDate = () => {
     const options: Intl.DateTimeFormatOptions = { weekday: "long", month: "long", day: "numeric" };
-    return new Date().toLocaleDateString("zh-CN", options);
+    return new Date().toLocaleDateString("en-US", options);
   };
 
   return (
@@ -296,7 +296,7 @@ const AppContent: React.FC = () => {
       <header className="sticky top-0 bg-white/70 backdrop-blur-md border-b border-neutral-100 z-30 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <span className="w-2.5 h-2.5 rounded-full bg-[#007AFF] animate-pulse" />
-          <h1 className="text-sm font-black tracking-wide text-neutral-900 select-none">Ives 的专属播客</h1>
+          <h1 className="text-sm font-black tracking-wide text-neutral-900 select-none">Ives' Podcast</h1>
         </div>
 
         {/* Network status */}
@@ -304,12 +304,12 @@ const AppContent: React.FC = () => {
           {isOnline ? (
             <div className="flex items-center text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 select-none">
               <Wifi className="w-3 h-3 mr-1" />
-              <span>在线</span>
+              <span>Online</span>
             </div>
           ) : (
             <div className="flex items-center text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-full select-none">
               <WifiOff className="w-3 h-3 mr-1" />
-              <span>离线模式</span>
+              <span>Offline Mode</span>
             </div>
           )}
         </div>
@@ -349,7 +349,7 @@ const AppContent: React.FC = () => {
                     <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
                       {getFormattedDate()}
                     </span>
-                    <h2 className="text-2xl font-black text-neutral-900 tracking-tight">现在收听</h2>
+                    <h2 className="text-2xl font-black text-neutral-900 tracking-tight">Listen Now</h2>
                   </div>
 
                   {/* Curated Recommendations or Latest Subscribed Episodes */}
@@ -357,13 +357,13 @@ const AppContent: React.FC = () => {
                     {subscriptions.length === 0 ? (
                       <>
                         <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left">
-                          推荐节目 (iTunes 官方源)
+                          Recommended Shows
                         </h3>
                         
                         {recLoading ? (
                           <div className="flex items-center justify-center py-10 space-y-2 flex-col">
                             <div className="w-6 h-6 rounded-full border-2 border-neutral-200 border-t-[#007AFF] animate-spin" />
-                            <span className="text-[10px] text-neutral-400">正在获取最新封面与单集...</span>
+                            <span className="text-[10px] text-neutral-400">Loading latest recommendations...</span>
                           </div>
                         ) : (
                           <div className="grid grid-cols-2 gap-4">
@@ -395,13 +395,13 @@ const AppContent: React.FC = () => {
                     ) : (
                       <>
                         <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left">
-                          最新订阅单集
+                          Latest Episodes
                         </h3>
                         
                         {loadingSubEpisodes ? (
                           <div className="flex items-center justify-center py-10 space-y-2 flex-col">
                             <div className="w-6 h-6 rounded-full border-2 border-neutral-200 border-t-[#007AFF] animate-spin" />
-                            <span className="text-[10px] text-neutral-400 font-medium">正在拉取最新单集...</span>
+                            <span className="text-[10px] text-neutral-400 font-medium">Fetching latest episodes...</span>
                           </div>
                         ) : (
                           <div className="space-y-3">
@@ -409,8 +409,8 @@ const AppContent: React.FC = () => {
                               const isPlayingThis = currentEpisode?.guid === ep.guid;
                               const isPlayingNow = isPlayingThis && isPlaying;
                               
-                              const durationMin = ep.duration ? `${Math.round(ep.duration / 60)}分钟` : "";
-                              const pubDateText = ep.pubDate ? new Date(ep.pubDate).toLocaleDateString("zh-CN", {
+                              const durationMin = ep.duration ? `${Math.round(ep.duration / 60)}m` : "";
+                              const pubDateText = ep.pubDate ? new Date(ep.pubDate).toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric"
                               }) : "";
@@ -485,7 +485,7 @@ const AppContent: React.FC = () => {
                             
                             {subscribedEpisodes.length === 0 && (
                               <p className="text-center text-[11px] text-neutral-400 py-6">
-                                正在为您加载订阅播客的单集，请稍候...
+                                Loading subscribed episodes, please wait...
                               </p>
                             )}
                           </div>
@@ -497,19 +497,19 @@ const AppContent: React.FC = () => {
                   {/* Subscriptions Hub Quick-start */}
                   <div className="space-y-3.5">
                     <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left">
-                      我的订阅 ({subscriptions.length})
+                      My Subscriptions ({subscriptions.length})
                     </h3>
 
                     {subscriptions.length === 0 ? (
                       <div className="bg-white rounded-2xl p-6 border border-dashed border-neutral-200 text-center space-y-3.5">
                         <p className="text-xs text-neutral-500 leading-normal">
-                          您尚未订阅任何节目。去搜索你喜欢的播客，或者点击上方的推荐节目，即可开始订阅并同步。
+                          You haven't subscribed to any shows yet. Search for your favourite podcasts or click on recommendations to subscribe and sync.
                         </p>
                         <button
                           onClick={() => setActiveTab("search")}
                           className="text-xs font-bold px-4 py-2 bg-neutral-900 text-white hover:bg-neutral-800 active:scale-95 transition-all rounded-full"
                         >
-                          前往探索与搜索
+                          Go to Search & Explore
                         </button>
                       </div>
                     ) : (
@@ -544,7 +544,7 @@ const AppContent: React.FC = () => {
                             onClick={() => setActiveTab("library")}
                             className="w-full py-3 text-center text-[11px] font-bold text-[#007AFF] hover:text-[#007AFF]/85 hover:bg-neutral-50 transition-colors"
                           >
-                            查看全部 {subscriptions.length} 个订阅节目
+                            View all {subscriptions.length} subscribed shows
                           </button>
                         )}
                       </div>
@@ -557,18 +557,18 @@ const AppContent: React.FC = () => {
               {activeTab === "library" && (
                 <div className="space-y-6">
                   <div className="text-left">
-                    <h2 className="text-2xl font-black text-neutral-900 tracking-tight">我的书架</h2>
+                    <h2 className="text-2xl font-black text-neutral-900 tracking-tight">My Library</h2>
                   </div>
 
                   {/* Subscribed grid */}
                   <div className="space-y-3.5">
                     <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left">
-                      已订阅节目 ({subscriptions.length})
+                      Subscribed Shows ({subscriptions.length})
                     </h3>
 
                     {subscriptions.length === 0 ? (
                       <div className="bg-white rounded-2xl p-6 border border-neutral-100 text-center text-xs text-neutral-400">
-                        暂无已订阅的播客。
+                        No subscribed podcasts yet.
                       </div>
                     ) : (
                       <div className="grid grid-cols-3 gap-3">
@@ -597,12 +597,12 @@ const AppContent: React.FC = () => {
                   <div className="space-y-3.5">
                     <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left flex items-center">
                       <FolderDown className="w-4 h-4 mr-1.5 text-neutral-500" />
-                      已下载的单集 ({downloads.length})
+                      Downloaded Episodes ({downloads.length})
                     </h3>
 
                     {downloads.length === 0 ? (
                       <div className="bg-white rounded-2xl p-5 border border-neutral-100 text-center text-xs text-neutral-400 leading-normal">
-                        暂无本地离线单集。<br />在节目详情页点击下载图标，即可在此处离线收听。
+                        No offline episodes downloaded.<br />Tap the download icon in episode details to download and listen offline.
                       </div>
                     ) : (
                       <div className="divide-y divide-neutral-100 bg-white rounded-2xl border border-neutral-100 overflow-hidden shadow-sm text-left">
@@ -616,21 +616,21 @@ const AppContent: React.FC = () => {
                                 {ep.title}
                               </h4>
                               <p className="text-[9px] text-neutral-400 mt-0.5 font-mono">
-                                下载于 {ep.pubDate}
+                                Downloaded on {ep.pubDate}
                               </p>
                             </div>
                             <div className="flex items-center space-x-2.5">
                               <button
-                                onClick={() => playEpisode(ep, "本地离线节目")}
+                                onClick={() => playEpisode(ep, "Local Offline Episode")}
                                 className="w-8 h-8 rounded-full bg-[#007AFF]/10 hover:bg-[#007AFF]/20 text-[#007AFF] flex items-center justify-center transition-all active:scale-90"
-                                title="播放"
+                                title="Play"
                               >
                                 <Play className="w-3.5 h-3.5 fill-[#007AFF] stroke-none translate-x-0.5" />
                               </button>
                               <button
                                 onClick={() => removeDownload(ep.guid)}
                                 className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-[#FF3B30]/10 text-neutral-400 hover:text-[#FF3B30] flex items-center justify-center transition-all active:scale-90"
-                                title="删除下载"
+                                title="Delete download"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -645,27 +645,27 @@ const AppContent: React.FC = () => {
                   <div className="space-y-3.5">
                     <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left flex items-center">
                       <History className="w-4 h-4 mr-1.5 text-neutral-500" />
-                      最近播放历史 ({history.length})
+                      Recently Played ({history.length})
                     </h3>
 
                     {history.length === 0 ? (
                       <div className="bg-white rounded-2xl p-4 border border-neutral-100 text-center text-xs text-neutral-400">
-                        最近没有播放历史。
+                        No playback history yet.
                       </div>
                     ) : (
                       <div className="divide-y divide-neutral-100 bg-white rounded-2xl border border-neutral-100 overflow-hidden shadow-sm text-left">
                         {history.slice(0, 5).map((hist) => {
                           const tempEp: Episode = {
-                            guid: hist.guid,
-                            title: hist.title,
-                            audioUrl: "", // context retrieves live from database or proxy if needed
-                            artwork: hist.artwork,
-                            pubDate: hist.pubDate,
-                            description: "历史单集",
-                            showNotes: "",
-                            audioType: "audio/mpeg",
-                            audioLength: 0,
-                            duration: 0
+                             guid: hist.guid,
+                             title: hist.title,
+                             audioUrl: "", // context retrieves live from database or proxy if needed
+                             artwork: hist.artwork,
+                             pubDate: hist.pubDate,
+                             description: "History Episode",
+                             showNotes: "",
+                             audioType: "audio/mpeg",
+                             audioLength: 0,
+                             duration: 0
                           };
 
                           return (
@@ -673,7 +673,7 @@ const AppContent: React.FC = () => {
                               key={hist.guid}
                               onClick={() => {
                                 // Re-trigger from history (if we click, we need the RSS info or we can play direct if it was downloaded)
-                                alert(`将直接播放《${hist.title}》，请确保已联网或该节目已下载。`);
+                                alert(`Playing "${hist.title}" directly. Please ensure you are connected to the internet or the episode is downloaded.`);
                                 playEpisode({
                                   ...tempEp,
                                   audioUrl: `https://itunes.apple.com` // placeholder, will try to fall back or search
@@ -708,14 +708,14 @@ const AppContent: React.FC = () => {
               {activeTab === "search" && (
                 <div className="space-y-6">
                   <div className="text-left">
-                    <h2 className="text-2xl font-black text-neutral-900 tracking-tight">搜索播客</h2>
+                    <h2 className="text-2xl font-black text-neutral-900 tracking-tight">Search</h2>
                   </div>
 
                   {/* Search input bar */}
                   <form onSubmit={handleSearchSubmit} className="relative">
                     <input
                       type="text"
-                      placeholder="搜索节目名称、作者或关键字..."
+                      placeholder="Search podcasts, episodes, authors..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-11 pr-4 py-3.5 bg-white border border-neutral-200 rounded-2xl text-xs text-neutral-800 placeholder-neutral-400 shadow-sm focus:border-[#007AFF] focus:bg-white outline-none transition-all"
@@ -730,7 +730,7 @@ const AppContent: React.FC = () => {
                         }}
                         className="text-[10px] font-bold text-neutral-400 hover:text-neutral-900 absolute right-4 top-4"
                       >
-                        清除
+                        Clear
                       </button>
                     )}
                   </form>
@@ -739,14 +739,14 @@ const AppContent: React.FC = () => {
                   {searchLoading ? (
                     <div className="flex items-center justify-center py-16 space-y-2 flex-col">
                       <div className="w-7 h-7 rounded-full border-2 border-neutral-200 border-t-neutral-800 animate-spin" />
-                      <span className="text-xs font-semibold text-neutral-400">正在云端搜索 iTunes 播客库...</span>
+                      <span className="text-xs font-semibold text-neutral-400">Searching iTunes directory...</span>
                     </div>
                   ) : searchError ? (
                     <p className="text-xs text-center text-[#FF3B30] py-10 font-semibold">{searchError}</p>
                   ) : searchResults.length > 0 ? (
                     <div className="space-y-3.5 text-left">
                       <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase px-1">
-                        找到 {searchResults.length} 个播客频道
+                        Found {searchResults.length} podcasts
                       </h3>
 
                       <div className="divide-y divide-neutral-100 bg-white rounded-2xl border border-neutral-100 overflow-hidden shadow-sm">
@@ -794,12 +794,12 @@ const AppContent: React.FC = () => {
                                 {isSub ? (
                                   <>
                                     <Check className="w-2.5 h-2.5 mr-1 stroke-[3px]" />
-                                    已订
+                                    Subbed
                                   </>
                                 ) : (
                                   <>
                                     <Plus className="w-2.5 h-2.5 mr-1 stroke-[3px]" />
-                                    订阅
+                                    Subscribe
                                   </>
                                 )}
                               </button>
@@ -823,7 +823,7 @@ const AppContent: React.FC = () => {
                             setSearchLoading(false);
                           })
                           .catch((err) => {
-                            setSearchError("加载分类内容失败");
+                            setSearchError("Failed to load category content");
                             setSearchLoading(false);
                           });
                       }}
@@ -836,7 +836,7 @@ const AppContent: React.FC = () => {
               {activeTab === "sync" && (
                 <div className="space-y-6">
                   <div className="text-left">
-                    <h2 className="text-2xl font-black text-neutral-900 tracking-tight">同步设置</h2>
+                    <h2 className="text-2xl font-black text-neutral-900 tracking-tight">Sync Settings</h2>
                   </div>
                   <SyncSettings />
                 </div>
@@ -864,7 +864,7 @@ const AppContent: React.FC = () => {
           }`}
         >
           <Radio className="w-5 h-5 stroke-[2.25px]" />
-          <span className="text-[9px] font-bold">现在收听</span>
+          <span className="text-[9px] font-bold">Listen Now</span>
         </button>
 
         <button
@@ -880,7 +880,7 @@ const AppContent: React.FC = () => {
           }`}
         >
           <BookOpen className="w-5 h-5 stroke-[2.25px]" />
-          <span className="text-[9px] font-bold">我的书架</span>
+          <span className="text-[9px] font-bold">Library</span>
         </button>
 
         <button
@@ -896,7 +896,7 @@ const AppContent: React.FC = () => {
           }`}
         >
           <Search className="w-5 h-5 stroke-[2.25px]" />
-          <span className="text-[9px] font-bold">搜索</span>
+          <span className="text-[9px] font-bold">Search</span>
         </button>
 
         <button
@@ -912,7 +912,7 @@ const AppContent: React.FC = () => {
           }`}
         >
           <Cloud className="w-5 h-5 stroke-[2.25px]" />
-          <span className="text-[9px] font-bold">同步设置</span>
+          <span className="text-[9px] font-bold">Sync</span>
         </button>
       </nav>
     </div>

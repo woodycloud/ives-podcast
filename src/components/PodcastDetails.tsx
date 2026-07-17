@@ -60,7 +60,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
       try {
         const response = await fetch(`/api/feed?url=${encodeURIComponent(feedUrl)}`);
         if (!response.ok) {
-          throw new Error("解析播客源失败");
+          throw new Error("Failed to parse podcast feed");
         }
         const data = await response.json();
         if (active) {
@@ -70,7 +70,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
       } catch (err: any) {
         if (active) {
           console.error(err);
-          setError(err.message || "无法加载该播客，请检查网络或播客源链接。");
+          setError(err.message || "Failed to load podcast. Please check your network or feed URL.");
           setLoading(false);
         }
       }
@@ -87,7 +87,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
     return (
       <div className="flex-1 flex flex-col items-center justify-center py-20 space-y-4">
         <div className="w-8 h-8 rounded-full border-2 border-neutral-200 border-t-neutral-800 animate-spin" />
-        <p className="text-xs font-medium text-neutral-400">正在解析播客源并更新单集...</p>
+        <p className="text-xs font-medium text-neutral-400">Parsing podcast feed & loading episodes...</p>
       </div>
     );
   }
@@ -95,12 +95,12 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
   if (error || !podcast) {
     return (
       <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-4 py-20">
-        <p className="text-sm font-semibold text-[#FF3B30]">{error || "加载失败"}</p>
+        <p className="text-sm font-semibold text-[#FF3B30]">{error || "Failed to load"}</p>
         <button
           onClick={onBack}
           className="text-xs font-semibold px-4 py-2 bg-neutral-900 text-white rounded-full hover:bg-neutral-800 transition-all active:scale-95"
         >
-          返回书架
+          Back to Library
         </button>
       </div>
     );
@@ -131,11 +131,11 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
       const diffMs = now.getTime() - d.getTime();
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
       
-      if (diffDays === 0) return "今天";
-      if (diffDays === 1) return "昨天";
-      if (diffDays < 7) return `${diffDays}天前`;
+      if (diffDays === 0) return "Today";
+      if (diffDays === 1) return "Yesterday";
+      if (diffDays < 7) return `${diffDays}d ago`;
       
-      return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     } catch (e) {
       return dateStr;
     }
@@ -151,9 +151,9 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     if (h > 0) {
-      return `${h}小时 ${m}分钟`;
+      return `${h}h ${m}m`;
     }
-    return `${m}分钟`;
+    return `${m}m`;
   };
 
   const playAllEpisodes = () => {
@@ -171,7 +171,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
         className="flex items-center text-neutral-500 hover:text-neutral-900 text-sm font-semibold transition-colors py-2 group select-none"
       >
         <ArrowLeft className="w-4 h-4 mr-1.5 group-hover:-translate-x-0.5 transition-transform" />
-        返回
+        Back
       </button>
 
       {/* Hero Header */}
@@ -212,12 +212,12 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
               {isSub ? (
                 <>
                   <Check className="w-3.5 h-3.5 mr-1.5 stroke-[3px]" />
-                  已订阅
+                  Subscribed
                 </>
               ) : (
                 <>
                   <Plus className="w-3.5 h-3.5 mr-1.5 stroke-[3px]" />
-                  订阅
+                  Subscribe
                 </>
               )}
             </button>
@@ -228,7 +228,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
               className="text-xs font-bold px-5 py-2.5 bg-[#007AFF]/10 text-[#007AFF] rounded-full hover:bg-[#007AFF]/20 transition-all active:scale-95 flex items-center"
             >
               <Play className="w-3.5 h-3.5 mr-1.5 fill-[#007AFF] stroke-none" />
-              收听最新
+              Play Latest
             </button>
           </div>
         </div>
@@ -236,7 +236,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
 
       {/* Podcast Description */}
       <div className="space-y-2">
-        <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase">节目简介</h3>
+        <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase">About</h3>
         <div className="bg-white rounded-2xl p-4 border border-neutral-100 text-left">
           <p className={`text-xs text-neutral-600 leading-relaxed ${!expandedDesc && "line-clamp-3"}`}>
             {stripHtml(podcast.description)}
@@ -248,12 +248,12 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
             {expandedDesc ? (
               <>
                 <ChevronUp className="w-3 h-3 mr-1" />
-                收起简介
+                Collapse Description
               </>
             ) : (
               <>
                 <ChevronDown className="w-3 h-3 mr-1" />
-                查看更多简介
+                Read More Description
               </>
             )}
           </button>
@@ -264,7 +264,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
       <div className="space-y-4 text-left">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase">
-            全部单集 ({podcast.episodes.length})
+            All Episodes ({podcast.episodes.length})
           </h3>
           {podcast.link && (
             <a
@@ -273,7 +273,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
               rel="noopener noreferrer"
               className="text-[11px] font-bold text-neutral-400 hover:text-neutral-900 flex items-center transition-colors"
             >
-              访问主页 <ExternalLink className="w-2.5 h-2.5 ml-1" />
+              Visit Homepage <ExternalLink className="w-2.5 h-2.5 ml-1" />
             </a>
           )}
         </div>
@@ -335,7 +335,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
                         />
                       </div>
                       <span className="text-[9px] font-semibold text-neutral-400 mt-0.5 inline-block">
-                        已收听 {Math.round((listenedProgress / ep.duration) * 100)}%
+                        Listened {Math.round((listenedProgress / ep.duration) * 100)}%
                       </span>
                     </div>
                   )}
@@ -384,7 +384,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
                       <button
                         onClick={() => removeDownload(ep.guid)}
                         className="w-6 h-6 rounded-full flex items-center justify-center text-[#FF3B30] hover:text-[#FF3B30]/90 hover:bg-[#FF3B30]/10 transition-colors"
-                        title="删除下载"
+                        title="Delete download"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -393,7 +393,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
                       <button
                         onClick={() => downloadEpisode(ep, podcast.title)}
                         className="w-6 h-6 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
-                        title="下载"
+                        title="Download"
                       >
                         <Download className="w-3.5 h-3.5" />
                       </button>
@@ -428,9 +428,9 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
               className="relative w-full max-w-sm bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-neutral-100/50 p-5 text-center flex flex-col space-y-4 mb-[env(safe-area-inset-bottom)] sm:mb-0 z-10"
             >
               <div className="space-y-1">
-                <h3 className="text-sm font-bold text-neutral-800">取消订阅播客</h3>
+                <h3 className="text-sm font-bold text-neutral-800">Unsubscribe Podcast</h3>
                 <p className="text-[11px] text-neutral-500 leading-relaxed px-2">
-                  确定要取消订阅播客《{podcast.title}》吗？
+                  Are you sure you want to unsubscribe from "{podcast.title}"?
                 </p>
               </div>
 
@@ -442,13 +442,13 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
                   }}
                   className="w-full py-2.5 bg-[#FF3B30] text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-sm shadow-[#FF3B30]/10"
                 >
-                  取消订阅
+                  Unsubscribe
                 </button>
                 <button
                   onClick={() => setShowConfirmUnsub(false)}
                   className="w-full py-2.5 bg-neutral-100 text-neutral-600 text-xs font-bold rounded-xl active:scale-95 transition-all"
                 >
-                  保留订阅
+                  Keep Subscription
                 </button>
               </div>
             </motion.div>

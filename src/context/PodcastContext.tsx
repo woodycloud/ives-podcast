@@ -387,7 +387,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
         delete next[guid];
         return next;
       });
-      alert(`下载失败: 无法下载 "${episode.title}"，播客源可能限制了代理下载。`);
+      alert(`Download failed: Unable to download "${episode.title}". The podcast source may have restricted proxy downloads.`);
     }
   };
 
