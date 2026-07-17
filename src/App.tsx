@@ -59,6 +59,10 @@ const AppContent: React.FC = () => {
   const [recommendations, setRecommendations] = useState<CuratedShow[]>([]);
   const [recLoading, setRecLoading] = useState<boolean>(true);
 
+  // Latest episodes from subscribed podcasts
+  const [subscribedEpisodes, setSubscribedEpisodes] = useState<any[]>([]);
+  const [loadingSubEpisodes, setLoadingSubEpisodes] = useState<boolean>(false);
+
   // Local downloads metadata
   const [downloadedEpisodes, setDownloadedEpisodes] = useState<Episode[]>([]);
 
@@ -146,6 +150,64 @@ const AppContent: React.FC = () => {
 
     fetchRecommendations();
   }, []);
+
+  // Fetch latest episodes for all subscribed podcasts
+  useEffect(() => {
+    let active = true;
+    if (activeTab !== "listen_now" || subscriptions.length === 0) {
+      return;
+    }
+
+    const fetchLatestSubscribedEpisodes = async () => {
+      setLoadingSubEpisodes(true);
+      try {
+        const promises = subscriptions.slice(0, 10).map(async (sub) => {
+          try {
+            const response = await fetch(`/api/feed?url=${encodeURIComponent(sub.feedUrl)}`);
+            if (response.ok) {
+              const data = await response.json();
+              // Extract the first 2 episodes from each subscription
+              const items = data.episodes || [];
+              return items.slice(0, 2).map((ep: any) => ({
+                ...ep,
+                podcastTitle: sub.title,
+                podcastArtwork: sub.artwork,
+                feedUrl: sub.feedUrl
+              }));
+            }
+          } catch (e) {
+            console.error(`Failed to fetch episodes for subscription: ${sub.title}`, e);
+          }
+          return [];
+        });
+
+        const results = await Promise.all(promises);
+        if (!active) return;
+
+        // Flatten all episodes, filter out empty ones, and sort by date descending
+        const merged = results.flat().filter(Boolean);
+        merged.sort((a, b) => {
+          const timeA = a.pubDate ? new Date(a.pubDate).getTime() : 0;
+          const timeB = b.pubDate ? new Date(b.pubDate).getTime() : 0;
+          return timeB - timeA;
+        });
+
+        setSubscribedEpisodes(merged.slice(0, 20));
+      } catch (err) {
+        console.error("Error fetching subscribed episodes:", err);
+      } finally {
+        if (active) {
+          setLoadingSubEpisodes(false);
+        }
+      }
+    };
+
+    fetchLatestSubscribedEpisodes();
+
+    return () => {
+      active = false;
+    };
+  }, [activeTab, subscriptions]);
 
   // Sync / Load offline downloads metadata
   useEffect(() => {
@@ -289,42 +351,145 @@ const AppContent: React.FC = () => {
                     <h2 className="text-2xl font-black text-neutral-900 tracking-tight">现在收听</h2>
                   </div>
 
-                  {/* Curated Recommendations */}
+                  {/* Curated Recommendations or Latest Subscribed Episodes */}
                   <div className="space-y-3.5">
-                    <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left">
-                      推荐节目 (iTunes 官方源)
-                    </h3>
-                    
-                    {recLoading ? (
-                      <div className="flex items-center justify-center py-10 space-y-2 flex-col">
-                        <div className="w-6 h-6 rounded-full border-2 border-neutral-200 border-t-[#007AFF] animate-spin" />
-                        <span className="text-[10px] text-neutral-400">正在获取最新封面与单集...</span>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-4">
-                        {recommendations.map((show, i) => (
-                          <div
-                            key={show.feedUrl || i}
-                            onClick={() => setSelectedFeedUrl(show.feedUrl)}
-                            className="bg-white rounded-2xl p-3 border border-neutral-100 shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-98 transition-all cursor-pointer flex flex-col text-left space-y-2.5 select-none"
-                          >
-                            <img
-                              src={show.artwork}
-                              alt={show.title}
-                              className="w-full aspect-square rounded-xl object-cover shadow-sm bg-neutral-100"
-                              referrerPolicy="no-referrer"
-                            />
-                            <div className="space-y-0.5">
-                              <h4 className="text-xs font-bold text-neutral-800 line-clamp-1 leading-normal">
-                                {show.title}
-                              </h4>
-                              <p className="text-[10px] text-neutral-400 truncate">
-                                {show.author}
-                              </p>
-                            </div>
+                    {subscriptions.length === 0 ? (
+                      <>
+                        <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left">
+                          推荐节目 (iTunes 官方源)
+                        </h3>
+                        
+                        {recLoading ? (
+                          <div className="flex items-center justify-center py-10 space-y-2 flex-col">
+                            <div className="w-6 h-6 rounded-full border-2 border-neutral-200 border-t-[#007AFF] animate-spin" />
+                            <span className="text-[10px] text-neutral-400">正在获取最新封面与单集...</span>
                           </div>
-                        ))}
-                      </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-4">
+                            {recommendations.map((show, i) => (
+                              <div
+                                key={show.feedUrl || i}
+                                onClick={() => setSelectedFeedUrl(show.feedUrl)}
+                                className="bg-white rounded-2xl p-3 border border-neutral-100 shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-98 transition-all cursor-pointer flex flex-col text-left space-y-2.5 select-none"
+                              >
+                                <img
+                                  src={show.artwork}
+                                  alt={show.title}
+                                  className="w-full aspect-square rounded-xl object-cover shadow-sm bg-neutral-100"
+                                  referrerPolicy="no-referrer"
+                                />
+                                <div className="space-y-0.5">
+                                  <h4 className="text-xs font-bold text-neutral-800 line-clamp-1 leading-normal">
+                                    {show.title}
+                                  </h4>
+                                  <p className="text-[10px] text-neutral-400 truncate">
+                                    {show.author}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left">
+                          最新订阅单集
+                        </h3>
+                        
+                        {loadingSubEpisodes ? (
+                          <div className="flex items-center justify-center py-10 space-y-2 flex-col">
+                            <div className="w-6 h-6 rounded-full border-2 border-neutral-200 border-t-[#007AFF] animate-spin" />
+                            <span className="text-[10px] text-neutral-400 font-medium">正在拉取最新单集...</span>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {subscribedEpisodes.map((ep) => {
+                              const isPlayingThis = currentEpisode?.guid === ep.guid;
+                              const isPlayingNow = isPlayingThis && isPlaying;
+                              
+                              const durationMin = ep.duration ? `${Math.round(ep.duration / 60)}分钟` : "";
+                              const pubDateText = ep.pubDate ? new Date(ep.pubDate).toLocaleDateString("zh-CN", {
+                                month: "short",
+                                day: "numeric"
+                              }) : "";
+
+                              return (
+                                <div
+                                  key={ep.guid}
+                                  className="bg-white rounded-2xl p-4 border border-neutral-100 shadow-sm flex items-start justify-between space-x-4 hover:shadow-md transition-all select-none"
+                                >
+                                  {/* Left: Artwork & Details */}
+                                  <div 
+                                    onClick={() => setSelectedFeedUrl(ep.feedUrl)}
+                                    className="flex items-start space-x-3.5 min-w-0 flex-1 cursor-pointer"
+                                  >
+                                    <img
+                                      src={ep.podcastArtwork || ep.artwork}
+                                      alt={ep.podcastTitle}
+                                      className="w-12 h-12 rounded-xl object-cover border border-neutral-100 shadow-sm flex-shrink-0 bg-neutral-100"
+                                      referrerPolicy="no-referrer"
+                                    />
+                                    <div className="min-w-0 text-left space-y-1">
+                                      <h4 className="text-xs font-bold text-neutral-800 line-clamp-1 leading-snug">
+                                        {ep.title}
+                                      </h4>
+                                      <div className="flex items-center space-x-1.5 text-[10px] font-medium text-neutral-400">
+                                        <span className="text-[#007AFF] font-semibold max-w-[120px] truncate">
+                                          {ep.podcastTitle}
+                                        </span>
+                                        <span>•</span>
+                                        <span>{pubDateText}</span>
+                                        {durationMin && (
+                                          <>
+                                            <span>•</span>
+                                            <span>{durationMin}</span>
+                                          </>
+                                        )}
+                                      </div>
+                                      <p className="text-[10px] text-neutral-400 line-clamp-1 font-light leading-relaxed">
+                                        {ep.description?.replace(/<[^>]*>/g, "")}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Right: Play/Pause action */}
+                                  <button
+                                    onClick={() => {
+                                      if (isPlayingThis) {
+                                        togglePlay();
+                                      } else {
+                                        playEpisode(ep, ep.podcastTitle);
+                                      }
+                                    }}
+                                    className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 ${
+                                      isPlayingNow
+                                        ? "bg-[#007AFF] text-white shadow-sm shadow-[#007AFF]/10"
+                                        : "bg-neutral-50 border border-neutral-200 text-neutral-800 hover:bg-neutral-100"
+                                    }`}
+                                  >
+                                    {isPlayingNow ? (
+                                      <div className="flex items-center justify-center space-x-[2.5px] h-3">
+                                        <div className="w-[1.5px] h-3 bg-white rounded-full animate-bounce" />
+                                        <div className="w-[1.5px] h-2 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
+                                        <div className="w-[1.5px] h-3 bg-white rounded-full animate-bounce [animation-delay:0.4s]" />
+                                      </div>
+                                    ) : (
+                                      <Play className="w-3.5 h-3.5 fill-current ml-0.5 stroke-none" />
+                                    )}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                            
+                            {subscribedEpisodes.length === 0 && (
+                              <p className="text-center text-[11px] text-neutral-400 py-6">
+                                正在为您加载订阅播客的单集，请稍候...
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 

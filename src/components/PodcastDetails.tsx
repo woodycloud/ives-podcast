@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronUp
 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 interface PodcastDetailsProps {
   feedUrl: string;
@@ -48,6 +49,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedDesc, setExpandedDesc] = useState<boolean>(false);
+  const [showConfirmUnsub, setShowConfirmUnsub] = useState<boolean>(false);
 
   useEffect(() => {
     let active = true;
@@ -108,9 +110,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
 
   const handleSubscribeToggle = () => {
     if (isSub) {
-      if (confirm(`确定要取消订阅播客《${podcast.title}》吗？`)) {
-        unsubscribe(feedUrl);
-      }
+      setShowConfirmUnsub(true);
     } else {
       subscribe({
         feedUrl,
@@ -382,11 +382,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
                     ) : isDownloadedThis ? (
                       /* Delete Download */
                       <button
-                        onClick={() => {
-                          if (confirm(`确定要删除此单集的本地下载，释放空间吗？`)) {
-                            removeDownload(ep.guid);
-                          }
-                        }}
+                        onClick={() => removeDownload(ep.guid)}
                         className="w-6 h-6 rounded-full flex items-center justify-center text-[#FF3B30] hover:text-[#FF3B30]/90 hover:bg-[#FF3B30]/10 transition-colors"
                         title="删除下载"
                       >
@@ -410,6 +406,55 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
           })}
         </div>
       </div>
+
+      {/* iOS-Style Custom Unsubscribe Confirm Sheet */}
+      <AnimatePresence>
+        {showConfirmUnsub && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowConfirmUnsub(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            {/* Content Container */}
+            <motion.div
+              initial={{ y: "100%", opacity: 0.5 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 350 }}
+              className="relative w-full max-w-sm bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-neutral-100/50 p-5 text-center flex flex-col space-y-4 mb-[env(safe-area-inset-bottom)] sm:mb-0 z-10"
+            >
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-neutral-800">取消订阅播客</h3>
+                <p className="text-[11px] text-neutral-500 leading-relaxed px-2">
+                  确定要取消订阅播客《{podcast.title}》吗？
+                </p>
+              </div>
+
+              <div className="flex flex-col space-y-2 pt-1">
+                <button
+                  onClick={() => {
+                    unsubscribe(feedUrl);
+                    setShowConfirmUnsub(false);
+                  }}
+                  className="w-full py-2.5 bg-[#FF3B30] text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-sm shadow-[#FF3B30]/10"
+                >
+                  取消订阅
+                </button>
+                <button
+                  onClick={() => setShowConfirmUnsub(false)}
+                  className="w-full py-2.5 bg-neutral-100 text-neutral-600 text-xs font-bold rounded-xl active:scale-95 transition-all"
+                >
+                  保留订阅
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
