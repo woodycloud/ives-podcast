@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { PodcastProvider, usePodcast, Episode, PodcastInfo } from "./context/PodcastContext";
 import { BottomPlayer } from "./components/BottomPlayer";
 import { SearchCategoryGrid } from "./components/SearchCategoryGrid";
+import * as db from "./utils/db";
 import { PodcastDetails } from "./components/PodcastDetails";
 import { SyncSettings } from "./components/SyncSettings";
 import { 
@@ -213,33 +214,24 @@ const AppContent: React.FC = () => {
   // Sync / Load offline downloads metadata
   useEffect(() => {
     const loadDownloads = async () => {
-      // Fetch details of downloaded episodes from IndexedDB
+      // Fetch details of downloaded episodes using robust DB helper
       try {
-        const dbOpen = await indexedDB.open("MinimalistPodcastDB", 1);
-        dbOpen.onsuccess = () => {
-          const database = dbOpen.result;
-          const tx = database.transaction("downloads", "readonly");
-          const store = tx.objectStore("downloads");
-          const request = store.getAll();
-          request.onsuccess = () => {
-            const results = request.result || [];
-            // Map downloaded records to temporary Episode objects
-            const mapped: Episode[] = results.map((item: any) => ({
-              guid: item.guid,
-              title: item.title,
-              audioUrl: item.audioUrl,
-              artwork: item.artwork || "", // Use actual saved artwork / Base64 image
-              podcastTitle: item.podcastTitle || "Downloaded Episode",
-              pubDate: item.pubDate || new Date(item.downloadedAt).toLocaleDateString(),
-              description: item.description || "Downloaded Episode",
-              showNotes: "",
-              audioType: "audio/mpeg",
-              audioLength: 0,
-              duration: item.duration || 0
-            }));
-            setDownloadedEpisodes(mapped);
-          };
-        };
+        const results = await db.getAllDownloads();
+        // Map downloaded records to temporary Episode objects
+        const mapped: Episode[] = results.map((item: any) => ({
+          guid: item.guid,
+          title: item.title,
+          audioUrl: item.audioUrl,
+          artwork: item.artwork || "", // Use actual saved artwork / Base64 image
+          podcastTitle: item.podcastTitle || "Downloaded Episode",
+          pubDate: item.pubDate || new Date(item.downloadedAt || Date.now()).toLocaleDateString(),
+          description: item.description || "Downloaded Episode",
+          showNotes: item.description || "", // Store description as fallback notes so details view isn't blank
+          audioType: "audio/mpeg",
+          audioLength: 0,
+          duration: item.duration || 0
+        }));
+        setDownloadedEpisodes(mapped);
       } catch (e) {
         console.error("Failed to load local downloads list", e);
       }

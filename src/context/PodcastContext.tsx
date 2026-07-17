@@ -498,7 +498,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const localDownload = await db.getDownload(episode.guid);
       let audioSrc = "";
 
-      if (localDownload) {
+      if (localDownload && localDownload.blob && localDownload.blob instanceof Blob) {
         // Play downloaded local file from Blob URL
         audioSrc = URL.createObjectURL(localDownload.blob);
         console.log("Playing from local offline cache");
