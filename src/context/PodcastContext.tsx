@@ -407,7 +407,40 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       const blob = new Blob(chunks, { type: "audio/mpeg" });
-      await db.saveDownload(guid, episode.title, episode.audioUrl, blob);
+
+      // Try to download and cache artwork offline as Base64 data URL
+      let savedArtwork = episode.artwork;
+      if (episode.artwork) {
+        try {
+          const artResp = await fetch(`/api/proxy-media?url=${encodeURIComponent(episode.artwork)}`);
+          if (artResp.ok) {
+            const artBlob = await artResp.blob();
+            const base64 = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(artBlob);
+            });
+            if (base64) {
+              savedArtwork = base64;
+            }
+          }
+        } catch (e) {
+          console.warn("Failed to download and convert artwork to Base64, falling back to original URL", e);
+        }
+      }
+
+      await db.saveDownload(
+        guid,
+        episode.title,
+        episode.audioUrl,
+        blob,
+        savedArtwork,
+        podcastTitle || episode.podcastTitle,
+        episode.duration,
+        episode.pubDate,
+        episode.description
+      );
       
       setDownloads(prev => [...prev, guid]);
       setDownloadingProgress(prev => {

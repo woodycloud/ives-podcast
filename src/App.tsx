@@ -228,13 +228,14 @@ const AppContent: React.FC = () => {
               guid: item.guid,
               title: item.title,
               audioUrl: item.audioUrl,
-              artwork: item.blob ? URL.createObjectURL(item.blob) : "", // blob URL
-              pubDate: new Date(item.downloadedAt).toLocaleDateString(),
-              description: "Downloaded Episode",
+              artwork: item.artwork || "", // Use actual saved artwork / Base64 image
+              podcastTitle: item.podcastTitle || "Downloaded Episode",
+              pubDate: item.pubDate || new Date(item.downloadedAt).toLocaleDateString(),
+              description: item.description || "Downloaded Episode",
               showNotes: "",
               audioType: "audio/mpeg",
               audioLength: 0,
-              duration: 0
+              duration: item.duration || 0
             }));
             setDownloadedEpisodes(mapped);
           };

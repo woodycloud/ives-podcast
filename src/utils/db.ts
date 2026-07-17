@@ -9,6 +9,11 @@ export interface DownloadedEpisode {
   audioUrl: string;
   blob?: Blob; // Made optional for JSON serialization compatibility
   downloadedAt: number;
+  artwork?: string;
+  podcastTitle?: string;
+  duration?: number;
+  pubDate?: string;
+  description?: string;
 }
 
 export interface Subscription {
@@ -130,10 +135,32 @@ function openDB(): Promise<IDBDatabase | null> {
 }
 
 // Downloads Operations
-export async function saveDownload(guid: string, title: string, audioUrl: string, blob: Blob): Promise<void> {
+export async function saveDownload(
+  guid: string,
+  title: string,
+  audioUrl: string,
+  blob: Blob,
+  artwork?: string,
+  podcastTitle?: string,
+  duration?: number,
+  pubDate?: string,
+  description?: string
+): Promise<void> {
   const db = await openDB();
+  const download: DownloadedEpisode = {
+    guid,
+    title,
+    audioUrl,
+    blob,
+    downloadedAt: Date.now(),
+    artwork,
+    podcastTitle,
+    duration,
+    pubDate,
+    description
+  };
   if (!db || useFallback) {
-    fallbackStore.downloads[guid] = { guid, title, audioUrl, downloadedAt: Date.now() };
+    fallbackStore.downloads[guid] = download;
     saveFallbackToLocalStorage();
     return;
   }
@@ -141,12 +168,11 @@ export async function saveDownload(guid: string, title: string, audioUrl: string
     try {
       const transaction = db.transaction("downloads", "readwrite");
       const store = transaction.objectStore("downloads");
-      const download: DownloadedEpisode = { guid, title, audioUrl, blob, downloadedAt: Date.now() };
       const request = store.put(download);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     } catch (e) {
-      fallbackStore.downloads[guid] = { guid, title, audioUrl, downloadedAt: Date.now() };
+      fallbackStore.downloads[guid] = download;
       saveFallbackToLocalStorage();
       resolve();
     }
