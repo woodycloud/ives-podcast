@@ -43,7 +43,8 @@ const AppContent: React.FC = () => {
     currentEpisode,
     isPlaying,
     togglePlay,
-    playbackProgress
+    playbackProgress,
+    removeDownload
   } = usePodcast();
 
   const [activeTab, setActiveTab] = useState<"listen_now" | "library" | "search" | "sync">("listen_now");
@@ -618,12 +619,20 @@ const AppContent: React.FC = () => {
                                 下载于 {ep.pubDate}
                               </p>
                             </div>
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-2.5">
                               <button
                                 onClick={() => playEpisode(ep, "本地离线节目")}
                                 className="w-8 h-8 rounded-full bg-[#007AFF]/10 hover:bg-[#007AFF]/20 text-[#007AFF] flex items-center justify-center transition-all active:scale-90"
+                                title="播放"
                               >
                                 <Play className="w-3.5 h-3.5 fill-[#007AFF] stroke-none translate-x-0.5" />
+                              </button>
+                              <button
+                                onClick={() => removeDownload(ep.guid)}
+                                className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-[#FF3B30]/10 text-neutral-400 hover:text-[#FF3B30] flex items-center justify-center transition-all active:scale-90"
+                                title="删除下载"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </div>
