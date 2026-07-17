@@ -1,0 +1,415 @@
+import React, { useEffect, useState } from "react";
+import { usePodcast, Episode } from "../context/PodcastContext";
+import { 
+  ArrowLeft, 
+  Plus, 
+  Check, 
+  Play, 
+  Pause, 
+  Download, 
+  Trash2, 
+  ExternalLink,
+  ChevronDown,
+  ChevronUp
+} from "lucide-react";
+
+interface PodcastDetailsProps {
+  feedUrl: string;
+  onBack: () => void;
+}
+
+interface PodcastDetailData {
+  title: string;
+  author: string;
+  description: string;
+  artwork: string;
+  link: string;
+  category: string;
+  episodes: Episode[];
+}
+
+export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack }) => {
+  const {
+    subscribe,
+    unsubscribe,
+    isSubscribed,
+    playEpisode,
+    currentEpisode,
+    isPlaying,
+    togglePlay,
+    downloadEpisode,
+    removeDownload,
+    isDownloaded,
+    downloadingProgress,
+    playbackProgress
+  } = usePodcast();
+
+  const [podcast, setPodcast] = useState<PodcastDetailData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedDesc, setExpandedDesc] = useState<boolean>(false);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError(null);
+
+    const fetchFeed = async () => {
+      try {
+        const response = await fetch(`/api/feed?url=${encodeURIComponent(feedUrl)}`);
+        if (!response.ok) {
+          throw new Error("解析播客源失败");
+        }
+        const data = await response.json();
+        if (active) {
+          setPodcast(data);
+          setLoading(false);
+        }
+      } catch (err: any) {
+        if (active) {
+          console.error(err);
+          setError(err.message || "无法加载该播客，请检查网络或播客源链接。");
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchFeed();
+
+    return () => {
+      active = false;
+    };
+  }, [feedUrl]);
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center py-20 space-y-4">
+        <div className="w-8 h-8 rounded-full border-2 border-neutral-200 border-t-neutral-800 animate-spin" />
+        <p className="text-xs font-medium text-neutral-400">正在解析播客源并更新单集...</p>
+      </div>
+    );
+  }
+
+  if (error || !podcast) {
+    return (
+      <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-4 py-20">
+        <p className="text-sm font-semibold text-[#FF3B30]">{error || "加载失败"}</p>
+        <button
+          onClick={onBack}
+          className="text-xs font-semibold px-4 py-2 bg-neutral-900 text-white rounded-full hover:bg-neutral-800 transition-all active:scale-95"
+        >
+          返回书架
+        </button>
+      </div>
+    );
+  }
+
+  const isSub = isSubscribed(feedUrl);
+
+  const handleSubscribeToggle = () => {
+    if (isSub) {
+      if (confirm(`确定要取消订阅播客《${podcast.title}》吗？`)) {
+        unsubscribe(feedUrl);
+      }
+    } else {
+      subscribe({
+        feedUrl,
+        title: podcast.title,
+        author: podcast.author,
+        artwork: podcast.artwork,
+      });
+    }
+  };
+
+  // Formatting helpers
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const now = new Date();
+      const diffMs = now.getTime() - d.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) return "今天";
+      if (diffDays === 1) return "昨天";
+      if (diffDays < 7) return `${diffDays}天前`;
+      
+      return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  const stripHtml = (html: string) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, "").trim();
+  };
+
+  const formatDuration = (seconds: number) => {
+    if (!seconds || isNaN(seconds)) return "";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) {
+      return `${h}小时 ${m}分钟`;
+    }
+    return `${m}分钟`;
+  };
+
+  const playAllEpisodes = () => {
+    if (podcast.episodes.length > 0) {
+      playEpisode(podcast.episodes[0], podcast.title);
+    }
+  };
+
+  return (
+    <div className="space-y-6 pb-24">
+      {/* Back navigation */}
+      <button
+        id="detail-back-button"
+        onClick={onBack}
+        className="flex items-center text-neutral-500 hover:text-neutral-900 text-sm font-semibold transition-colors py-2 group select-none"
+      >
+        <ArrowLeft className="w-4 h-4 mr-1.5 group-hover:-translate-x-0.5 transition-transform" />
+        返回
+      </button>
+
+      {/* Hero Header */}
+      <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 pb-6 border-b border-neutral-100">
+        <img
+          src={podcast.artwork}
+          alt={podcast.title}
+          className="w-36 h-36 md:w-40 md:h-40 rounded-2xl object-cover shadow-md bg-neutral-100 border border-neutral-100"
+          referrerPolicy="no-referrer"
+        />
+        <div className="flex-1 space-y-3 pt-1">
+          <div className="space-y-1">
+            <h2 className="text-xl md:text-2xl font-black text-neutral-900 leading-tight tracking-tight">
+              {podcast.title}
+            </h2>
+            <p className="text-xs font-semibold text-[#007AFF] tracking-wide">
+              {podcast.author}
+            </p>
+          </div>
+
+          {podcast.category && (
+            <span className="inline-block text-[10px] font-bold tracking-wider uppercase text-neutral-400 bg-neutral-100 px-2.5 py-1 rounded-md">
+              {podcast.category}
+            </span>
+          )}
+
+          {/* Action Pills */}
+          <div className="flex items-center justify-center sm:justify-start space-x-2.5 pt-2">
+            <button
+              id="btn-subscribe-toggle"
+              onClick={handleSubscribeToggle}
+              className={`text-xs font-bold px-5 py-2.5 rounded-full transition-all active:scale-95 flex items-center ${
+                isSub 
+                  ? "bg-neutral-100 text-neutral-600 hover:bg-neutral-200" 
+                  : "bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm shadow-neutral-900/10"
+              }`}
+            >
+              {isSub ? (
+                <>
+                  <Check className="w-3.5 h-3.5 mr-1.5 stroke-[3px]" />
+                  已订阅
+                </>
+              ) : (
+                <>
+                  <Plus className="w-3.5 h-3.5 mr-1.5 stroke-[3px]" />
+                  订阅
+                </>
+              )}
+            </button>
+
+            <button
+              id="btn-play-all"
+              onClick={playAllEpisodes}
+              className="text-xs font-bold px-5 py-2.5 bg-[#007AFF]/10 text-[#007AFF] rounded-full hover:bg-[#007AFF]/20 transition-all active:scale-95 flex items-center"
+            >
+              <Play className="w-3.5 h-3.5 mr-1.5 fill-[#007AFF] stroke-none" />
+              收听最新
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Podcast Description */}
+      <div className="space-y-2">
+        <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase">节目简介</h3>
+        <div className="bg-white rounded-2xl p-4 border border-neutral-100 text-left">
+          <p className={`text-xs text-neutral-600 leading-relaxed ${!expandedDesc && "line-clamp-3"}`}>
+            {stripHtml(podcast.description)}
+          </p>
+          <button
+            onClick={() => setExpandedDesc(!expandedDesc)}
+            className="text-[11px] font-bold text-neutral-400 mt-2 hover:text-neutral-900 transition-colors flex items-center select-none"
+          >
+            {expandedDesc ? (
+              <>
+                <ChevronUp className="w-3 h-3 mr-1" />
+                收起简介
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-3 h-3 mr-1" />
+                查看更多简介
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Episode List */}
+      <div className="space-y-4 text-left">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase">
+            全部单集 ({podcast.episodes.length})
+          </h3>
+          {podcast.link && (
+            <a
+              href={podcast.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] font-bold text-neutral-400 hover:text-neutral-900 flex items-center transition-colors"
+            >
+              访问主页 <ExternalLink className="w-2.5 h-2.5 ml-1" />
+            </a>
+          )}
+        </div>
+
+        <div className="divide-y divide-neutral-100 bg-white rounded-2xl border border-neutral-100 overflow-hidden shadow-sm">
+          {podcast.episodes.map((ep) => {
+            const isPlayingThis = currentEpisode?.guid === ep.guid;
+            const isDownloadedThis = isDownloaded(ep.guid);
+            const dlProgress = downloadingProgress[ep.guid];
+            const listenedProgress = playbackProgress[ep.guid]; // current time
+
+            return (
+              <div 
+                key={ep.guid} 
+                className="p-4 flex gap-4 hover:bg-neutral-50/50 transition-colors group"
+              >
+                {/* Visual listen indicator or artwork thumbnail */}
+                <div className="relative flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-neutral-100 shadow-sm bg-neutral-100 hidden sm:block">
+                  <img
+                    src={ep.artwork || podcast.artwork}
+                    alt={ep.title}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  {isPlayingThis && isPlaying && (
+                    <div className="absolute inset-0 bg-neutral-900/20 backdrop-blur-[1px] flex items-center justify-center text-white">
+                      <Play className="w-4 h-4 animate-ping fill-white stroke-none" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Info and text */}
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center space-x-2 text-[10px] font-bold text-neutral-400 tracking-wide font-sans">
+                    <span>{formatDate(ep.pubDate)}</span>
+                    {ep.duration > 0 && (
+                      <>
+                        <span>•</span>
+                        <span>{formatDuration(ep.duration)}</span>
+                      </>
+                    )}
+                  </div>
+
+                  <h4 className="text-xs font-bold text-neutral-800 line-clamp-1 group-hover:text-neutral-900 transition-colors">
+                    {ep.title}
+                  </h4>
+
+                  <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
+                    {stripHtml(ep.description || ep.showNotes)}
+                  </p>
+
+                  {/* Playback Progress Indicator if partially listened */}
+                  {listenedProgress && ep.duration > 0 && (
+                    <div className="pt-2 w-28">
+                      <div className="h-[2px] w-full bg-neutral-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-[#007AFF] rounded-full"
+                          style={{ width: `${(listenedProgress / ep.duration) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-[9px] font-semibold text-neutral-400 mt-0.5 inline-block">
+                        已收听 {Math.round((listenedProgress / ep.duration) * 100)}%
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Play and Download Actions */}
+                <div className="flex flex-col justify-between items-center space-y-3 flex-shrink-0">
+                  {/* Play Button */}
+                  <button
+                    onClick={() => {
+                      if (isPlayingThis) {
+                        togglePlay();
+                      } else {
+                        playEpisode(ep, podcast.title);
+                      }
+                    }}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                      isPlayingThis && isPlaying
+                        ? "bg-[#007AFF] text-white shadow-sm shadow-[#007AFF]/10"
+                        : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
+                    }`}
+                  >
+                    {isPlayingThis && isPlaying ? (
+                      <Pause className="w-3.5 h-3.5 fill-white stroke-none" />
+                    ) : (
+                      <Play className="w-3.5 h-3.5 fill-current stroke-none translate-x-0.5" />
+                    )}
+                  </button>
+
+                  {/* Download Button */}
+                  <div>
+                    {dlProgress !== undefined ? (
+                      /* Downloading spinner */
+                      <div className="relative w-6 h-6 flex items-center justify-center">
+                        <svg className="w-6 h-6 transform -rotate-90">
+                          <circle cx="12" cy="12" r="9" stroke="#e4e4e7" strokeWidth="2" fill="transparent" />
+                          <circle cx="12" cy="12" r="9" stroke="#007AFF" strokeWidth="2" fill="transparent" 
+                            strokeDasharray={2 * Math.PI * 9}
+                            strokeDashoffset={2 * Math.PI * 9 * (1 - dlProgress / 100)}
+                          />
+                        </svg>
+                        <span className="absolute text-[6px] font-bold text-neutral-600">{dlProgress}%</span>
+                      </div>
+                    ) : isDownloadedThis ? (
+                      /* Delete Download */
+                      <button
+                        onClick={() => {
+                          if (confirm(`确定要删除此单集的本地下载，释放空间吗？`)) {
+                            removeDownload(ep.guid);
+                          }
+                        }}
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-[#FF3B30] hover:text-[#FF3B30]/90 hover:bg-[#FF3B30]/10 transition-colors"
+                        title="删除下载"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    ) : (
+                      /* Download */
+                      <button
+                        onClick={() => downloadEpisode(ep, podcast.title)}
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
+                        title="下载"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};

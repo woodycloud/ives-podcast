@@ -1,0 +1,6 @@
+{
+  "name": "Ives 的专属播客",
+  "description": "Ives 的专属极简风格播客播放器，支持海外主流播客搜索、订阅自动同步与离线下载播放。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
