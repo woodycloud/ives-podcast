@@ -53,11 +53,18 @@ export const BottomPlayer: React.FC = () => {
     return `${m}:${sStr}`;
   };
 
-  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const [isScrubbing, setIsScrubbing] = useState(false);
+  const [scrubValue, setScrubValue] = useState(0);
+
+  const progressPercent = duration > 0 ? ((isScrubbing ? scrubValue : currentTime) / duration) * 100 : 0;
 
   const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = parseFloat(e.target.value);
-    seekTo(newTime);
+    if (isScrubbing) {
+      setScrubValue(newTime);
+    } else {
+      seekTo(newTime);
+    }
   };
 
   const handleShare = (e: React.MouseEvent) => {
@@ -267,13 +274,33 @@ export const BottomPlayer: React.FC = () => {
                     type="range"
                     min="0"
                     max={duration || 100}
-                    value={currentTime}
+                    value={isScrubbing ? scrubValue : currentTime}
+                    onMouseDown={() => {
+                      setIsScrubbing(true);
+                      setScrubValue(currentTime);
+                    }}
+                    onTouchStart={() => {
+                      setIsScrubbing(true);
+                      setScrubValue(currentTime);
+                    }}
                     onChange={handleProgressChange}
+                    onMouseUp={() => {
+                      if (isScrubbing) {
+                        seekTo(scrubValue);
+                        setIsScrubbing(false);
+                      }
+                    }}
+                    onTouchEnd={() => {
+                      if (isScrubbing) {
+                        seekTo(scrubValue);
+                        setIsScrubbing(false);
+                      }
+                    }}
                     className="w-full h-[5px] bg-neutral-100 rounded-lg appearance-none cursor-pointer accent-neutral-900 outline-none hover:accent-[#007AFF] transition-all"
                   />
                   <div className="flex justify-between text-[11px] font-medium text-neutral-400 px-1 font-mono">
-                    <span>{formatTime(currentTime)}</span>
-                    <span>-{formatTime(duration - currentTime)}</span>
+                    <span>{formatTime(isScrubbing ? scrubValue : currentTime)}</span>
+                    <span>-{formatTime(duration - (isScrubbing ? scrubValue : currentTime))}</span>
                   </div>
                 </div>
 

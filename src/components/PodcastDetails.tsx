@@ -42,7 +42,9 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
     removeDownload,
     isDownloaded,
     downloadingProgress,
-    playbackProgress
+    playbackProgress,
+    getCachedFeed,
+    setCachedFeed
   } = usePodcast();
 
   const [podcast, setPodcast] = useState<PodcastDetailData | null>(null);
@@ -57,6 +59,16 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
     setError(null);
 
     const fetchFeed = async () => {
+      // Try to load from client-side memory cache first
+      const cached = getCachedFeed(feedUrl);
+      if (cached) {
+        if (active) {
+          setPodcast(cached);
+          setLoading(false);
+        }
+        return;
+      }
+
       try {
         const response = await fetch(`/api/feed?url=${encodeURIComponent(feedUrl)}`);
         if (!response.ok) {
@@ -64,6 +76,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
         }
         const data = await response.json();
         if (active) {
+          setCachedFeed(feedUrl, data);
           setPodcast(data);
           setLoading(false);
         }

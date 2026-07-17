@@ -6,7 +6,7 @@ import { XMLParser } from "fast-xml-parser";
 import { Readable } from "stream";
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const DATA_DIR = path.join(process.cwd(), "data");
 const SYNC_FILE = path.join(DATA_DIR, "subscriptions.json");
 
@@ -54,11 +54,30 @@ app.get("/api/lookup", async (req, res) => {
   }
 });
 
+// In-memory RSS cache structure
+interface FeedCacheEntry {
+  data: any;
+  timestamp: number;
+}
+const feedCache = new Map<string, FeedCacheEntry>();
+const CACHE_TTL = 15 * 60 * 1000; // 15 minutes TTL
+
 // API: RSS Feed Parser
 app.get("/api/feed", async (req, res) => {
   const feedUrl = req.query.url as string;
+  const forceRefresh = req.query.refresh === "true";
+
   if (!feedUrl) {
     return res.status(400).json({ error: "Parameter 'url' is required" });
+  }
+
+  // 1. Serve from Cache if available and valid
+  if (!forceRefresh) {
+    const cached = feedCache.get(feedUrl);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      console.log(`[Cache Hit] Serving cached RSS feed for: ${feedUrl}`);
+      return res.json(cached.data);
+    }
   }
 
   try {
@@ -160,6 +179,28 @@ app.get("/api/feed", async (req, res) => {
       category: channel["itunes:category"]?.["@_text"] || channel.category || "",
       episodes,
     };
+
+    // Store in cache
+    feedCache.set(feedUrl, {
+      data: parsedPodcast,
+      timestamp: Date.now()
+    });
+
+    // Prune cache occasionally to prevent infinite expansion
+    if (feedCache.size > 200) {
+      const now = Date.now();
+      for (const [key, entry] of feedCache.entries()) {
+        if (now - entry.timestamp > CACHE_TTL) {
+          feedCache.delete(key);
+        }
+      }
+      if (feedCache.size > 200) {
+        const oldestKey = feedCache.keys().next().value;
+        if (oldestKey !== undefined) {
+          feedCache.delete(oldestKey);
+        }
+      }
+    }
 
     res.json(parsedPodcast);
   } catch (error: any) {

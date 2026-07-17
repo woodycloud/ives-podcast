@@ -73,6 +73,10 @@ interface PodcastContextType {
   history: db.PlaybackHistory[];
   addToHistory: (episode: Episode, podcastTitle: string) => Promise<void>;
   clearHistory: () => void;
+
+  // Feed Caching
+  getCachedFeed: (url: string) => any;
+  setCachedFeed: (url: string, data: any) => void;
 }
 
 const PodcastContext = createContext<PodcastContextType | undefined>(undefined);
@@ -109,6 +113,22 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Audio Ref
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const currentEpisodeRef = useRef<Episode | null>(null);
+  const loadedFeedsRef = useRef<Record<string, { data: any; timestamp: number }>>({});
+
+  const getCachedFeed = (url: string) => {
+    const entry = loadedFeedsRef.current[url];
+    if (entry && Date.now() - entry.timestamp < 10 * 60 * 1000) { // 10 minutes client cache
+      return entry.data;
+    }
+    return null;
+  };
+
+  const setCachedFeed = (url: string, data: any) => {
+    loadedFeedsRef.current[url] = {
+      data,
+      timestamp: Date.now()
+    };
+  };
 
   // Sync ref with state
   useEffect(() => {
@@ -142,10 +162,17 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
     audioRef.current = audio;
 
     // Audio Listeners
+    let lastSavedTime = 0;
     const onTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
-      if (currentEpisodeRef.current && audio.currentTime > 0) {
-        saveProgressState(currentEpisodeRef.current.guid, audio.currentTime, audio.duration || currentEpisodeRef.current.duration);
+      const ep = currentEpisodeRef.current;
+      if (ep && audio.currentTime > 0) {
+        // Save to DB and state only if 5+ seconds have elapsed since last save
+        if (Math.abs(audio.currentTime - lastSavedTime) >= 5) {
+          lastSavedTime = audio.currentTime;
+          db.saveProgress(ep.guid, ep.title, audio.currentTime, audio.duration || ep.duration, false);
+          setPlaybackProgress(prev => ({ ...prev, [ep.guid]: audio.currentTime }));
+        }
       }
     };
 
@@ -155,15 +182,23 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const onEnded = () => {
       setIsPlaying(false);
-      if (currentEpisodeRef.current) {
-        db.saveProgress(currentEpisodeRef.current.guid, currentEpisodeRef.current.title, audio.currentTime, audio.duration || currentEpisodeRef.current.duration, true)
+      const ep = currentEpisodeRef.current;
+      if (ep) {
+        db.saveProgress(ep.guid, ep.title, audio.currentTime, audio.duration || ep.duration, true)
           .then(() => refreshProgressList());
       }
       playNext();
     };
 
     const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
+    const onPause = () => {
+      setIsPlaying(false);
+      const ep = currentEpisodeRef.current;
+      if (ep && audio.currentTime > 0) {
+        db.saveProgress(ep.guid, ep.title, audio.currentTime, audio.duration || ep.duration, false);
+        setPlaybackProgress(prev => ({ ...prev, [ep.guid]: audio.currentTime }));
+      }
+    };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("durationchange", onDurationChange);
@@ -598,6 +633,9 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
         history,
         addToHistory,
         clearHistory,
+
+        getCachedFeed,
+        setCachedFeed,
       }}
     >
       {children}
