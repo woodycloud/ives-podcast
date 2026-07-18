@@ -33,6 +33,8 @@ interface PodcastContextType {
   isOnline: boolean;
   syncStatus: "idle" | "syncing" | "success" | "error";
   triggerSync: (customId?: string, forceOverwriteServer?: boolean) => Promise<void>;
+  isActivated: boolean;
+  validateAndActivateKey: (key: string) => Promise<{ success: boolean; message: string }>;
 
   // Subscriptions
   subscriptions: PodcastInfo[];
@@ -95,6 +97,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [userId, setUserId] = useState<string>("");
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
+  const [isActivated, setIsActivated] = useState<boolean>(false);
 
   // State
   const [subscriptions, setSubscriptions] = useState<PodcastInfo[]>([]);
@@ -150,13 +153,14 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Initialize data
   useEffect(() => {
-    // Initialize User ID
-    let savedId = localStorage.getItem("min_podcast_user_id");
-    if (!savedId) {
-      savedId = `MIN-POD-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
-      localStorage.setItem("min_podcast_user_id", savedId);
+    // Initialize User ID and Activation state
+    const savedId = localStorage.getItem("min_podcast_user_id") || "";
+    const activated = localStorage.getItem("min_podcast_activated") === "true";
+    
+    if (savedId) {
+      setUserId(savedId);
     }
-    setUserId(savedId);
+    setIsActivated(activated);
 
     // Create Audio Element
     const audio = new Audio();
@@ -252,10 +256,10 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Auto-sync subscriptions when user goes online or changes ID
   useEffect(() => {
-    if (userId && isOnline) {
+    if (isActivated && userId && isOnline) {
       triggerSync(userId);
     }
-  }, [userId, isOnline]);
+  }, [userId, isOnline, isActivated]);
 
   const refreshProgressList = async () => {
     const prog = await db.getAllProgress();
@@ -278,14 +282,82 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const cleanId = id.trim().toUpperCase();
     if (!cleanId) return false;
     
+    try {
+      const res = await fetch("/api/validate-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: cleanId })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        return false;
+      }
+    } catch (e) {
+      console.error("Failed to validate new key:", e);
+      return false;
+    }
+    
     localStorage.setItem("min_podcast_user_id", cleanId);
+    localStorage.setItem("min_podcast_activated", "true");
     setUserId(cleanId);
+    setIsActivated(true);
     
     // Attempt sync immediately
     if (isOnline) {
       await triggerSync(cleanId);
     }
     return true;
+  };
+
+  const validateAndActivateKey = async (key: string): Promise<{ success: boolean; message: string }> => {
+    const cleanKey = key.trim().toUpperCase();
+    if (!cleanKey) {
+      return { success: false, message: "密钥不能为空。" };
+    }
+    
+    try {
+      const response = await fetch("/api/validate-key", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ key: cleanKey }),
+      });
+      
+      const data = await response.json();
+      if (response.ok && data.valid) {
+        localStorage.setItem("min_podcast_user_id", cleanKey);
+        localStorage.setItem("min_podcast_activated", "true");
+        setUserId(cleanKey);
+        setIsActivated(true);
+        
+        // Initial subscription sync upon activation
+        if (navigator.onLine) {
+          try {
+            const syncRes = await fetch(`/api/sync?userId=${encodeURIComponent(cleanKey)}`);
+            if (syncRes.ok) {
+              const syncData = await syncRes.json();
+              if (syncData.subscriptions && syncData.subscriptions.length > 0) {
+                for (const sub of syncData.subscriptions) {
+                  await db.saveSubscription(sub);
+                }
+                const localSubs = await db.getAllSubscriptions();
+                setSubscriptions(localSubs);
+              }
+            }
+          } catch (syncErr) {
+            console.error("Initial sync error upon activation:", syncErr);
+          }
+        }
+        
+        return { success: true, message: data.message || "激活成功！" };
+      } else {
+        return { success: false, message: data.error || data.message || "无效的激活密钥，请联系管理员。" };
+      }
+    } catch (err) {
+      console.error("Activation request error:", err);
+      return { success: false, message: "激活请求失败，请检查网络连接。" };
+    }
   };
 
   // Sync with Server (Auto-sync)
@@ -611,6 +683,8 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isOnline,
         syncStatus,
         triggerSync,
+        isActivated,
+        validateAndActivateKey,
 
         subscriptions,
         subscribe,

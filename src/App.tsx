@@ -6,6 +6,7 @@ import { PodcastDetails } from "./components/PodcastDetails";
 import * as db from "./utils/db";
 import { SyncSettings } from "./components/SyncSettings";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ActivationPage } from "./components/ActivationPage";
 import { 
   Radio, 
   BookOpen, 
@@ -50,7 +51,8 @@ const AppContent: React.FC = () => {
     togglePlay,
     playbackProgress,
     removeDownload,
-    clearAllDownloads
+    clearAllDownloads,
+    isActivated
   } = usePodcast();
 
   const [activeTab, setActiveTab] = useState<"listen_now" | "library" | "search" | "sync">("listen_now");
@@ -325,6 +327,10 @@ const AppContent: React.FC = () => {
     else if (theme === "dark") setTheme("system");
     else setTheme("light");
   };
+
+  if (!isActivated) {
+    return <ActivationPage />;
+  }
 
   return (
     <div className="min-h-screen bg-neutral-50/60 dark:bg-neutral-950 pb-[calc(144px_+_env(safe-area-inset-bottom))] flex flex-col antialiased transition-colors duration-300">

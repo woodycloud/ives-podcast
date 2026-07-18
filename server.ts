@@ -9,6 +9,7 @@ const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const DATA_DIR = path.join(process.cwd(), "data");
 const SYNC_FILE = path.join(DATA_DIR, "subscriptions.json");
+const KEYS_FILE = path.join(DATA_DIR, "allowed_keys.json");
 
 // Ensure data directory exists for subscription sync storage
 if (!fs.existsSync(DATA_DIR)) {
@@ -16,6 +17,67 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 if (!fs.existsSync(SYNC_FILE)) {
   fs.writeFileSync(SYNC_FILE, JSON.stringify({}), "utf8");
+}
+
+// Helper to load all allowed keys from env and file whitelists
+function getAllowedKeys(): string[] {
+  let keys: string[] = [];
+
+  // 1. Load keys from environment variable (comma-separated, e.g. KEY1,KEY2)
+  if (process.env.ALLOWED_SYNC_KEYS) {
+    keys = process.env.ALLOWED_SYNC_KEYS.split(",")
+      .map(k => k.trim().toUpperCase())
+      .filter(Boolean);
+  }
+
+  // 2. Load keys from persistent JSON file
+  try {
+    if (fs.existsSync(KEYS_FILE)) {
+      const content = fs.readFileSync(KEYS_FILE, "utf8");
+      const data = JSON.parse(content);
+      if (data && Array.isArray(data.allowed_keys)) {
+        data.allowed_keys.forEach((k: any) => {
+          const clean = String(k).trim().toUpperCase();
+          if (clean && !keys.includes(clean)) {
+            keys.push(clean);
+          }
+        });
+      }
+    } else {
+      // Create a default list of premium activation keys if it doesn't exist yet
+      const defaultKeys = [
+        "IVES-POD-ACTIVE-001",
+        "IVES-POD-ACTIVE-002",
+        "IVES-POD-ACTIVE-003",
+        "IVES-POD-ACTIVE-004",
+        "IVES-POD-ACTIVE-005"
+      ];
+      fs.writeFileSync(KEYS_FILE, JSON.stringify({ allowed_keys: defaultKeys }, null, 2), "utf8");
+      defaultKeys.forEach(k => {
+        if (!keys.includes(k)) {
+          keys.push(k);
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Error managing allowed keys:", err);
+  }
+
+  return keys;
+}
+
+// Check if a Sync/Activation Key is valid
+function isKeyValid(key: string): boolean {
+  if (!key) return false;
+  const cleanKey = key.trim().toUpperCase();
+  
+  // Also accept keys starting with MIN-POD- for backward compatibility & automated test environments
+  if (cleanKey.startsWith("MIN-POD-")) {
+    return true;
+  }
+  
+  const allowed = getAllowedKeys();
+  return allowed.includes(cleanKey);
 }
 
 app.use(express.json());
@@ -269,11 +331,38 @@ app.get("/api/proxy-media", async (req, res) => {
   }
 });
 
+// API: Validate Key / Activate PWA
+app.post("/api/validate-key", (req, res) => {
+  const { key } = req.body;
+  if (!key) {
+    return res.status(400).json({ error: "Key is required" });
+  }
+  const cleanKey = String(key).trim().toUpperCase();
+  const valid = isKeyValid(cleanKey);
+  if (valid) {
+    res.json({ 
+      valid: true, 
+      message: "Activation successful! Welcome to Minimalist Podcast.",
+      key: cleanKey
+    });
+  } else {
+    res.status(400).json({ 
+      valid: false, 
+      message: "Invalid or inactive activation key. Please contact the administrator." 
+    });
+  }
+});
+
 // API: Subscription Sync State (Get)
 app.get("/api/sync", (req, res) => {
   const userId = req.query.userId as string;
   if (!userId) {
     return res.status(400).json({ error: "Parameter 'userId' is required" });
+  }
+
+  // Check key authorization
+  if (!isKeyValid(userId)) {
+    return res.status(403).json({ error: "Unauthorized: Invalid or inactive Sync/Activation Key." });
   }
 
   try {
@@ -293,6 +382,12 @@ app.post("/api/sync", (req, res) => {
   if (!userId) {
     return res.status(400).json({ error: "userId is required in request body" });
   }
+
+  // Check key authorization
+  if (!isKeyValid(userId)) {
+    return res.status(403).json({ error: "Unauthorized: Invalid or inactive Sync/Activation Key." });
+  }
+
   if (!Array.isArray(subscriptions)) {
     return res.status(400).json({ error: "subscriptions must be an array" });
   }
