@@ -36,6 +36,8 @@ export const BottomPlayer: React.FC = () => {
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [isScrubbing, setIsScrubbing] = useState(false);
+  const [scrubValue, setScrubValue] = useState(0);
 
   if (!currentEpisode) return null;
 
@@ -52,9 +54,6 @@ export const BottomPlayer: React.FC = () => {
     }
     return `${m}:${sStr}`;
   };
-
-  const [isScrubbing, setIsScrubbing] = useState(false);
-  const [scrubValue, setScrubValue] = useState(0);
 
   const progressPercent = duration > 0 ? ((isScrubbing ? scrubValue : currentTime) / duration) * 100 : 0;
 
