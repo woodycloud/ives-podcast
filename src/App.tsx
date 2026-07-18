@@ -5,6 +5,7 @@ import { SearchCategoryGrid } from "./components/SearchCategoryGrid";
 import { PodcastDetails } from "./components/PodcastDetails";
 import * as db from "./utils/db";
 import { SyncSettings } from "./components/SyncSettings";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { 
   Radio, 
   BookOpen, 
@@ -282,7 +283,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50/60 pb-[calc(144px+env(safe-area-inset-bottom))] flex flex-col antialiased">
+    <div className="min-h-screen bg-neutral-50/60 pb-[calc(144px_+_env(safe-area-inset-bottom))] flex flex-col antialiased">
       {/* Top Bar Status Monitor */}
       <header className="sticky top-0 bg-white/70 backdrop-blur-md border-b border-neutral-100 z-30 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -860,7 +861,7 @@ const AppContent: React.FC = () => {
       <BottomPlayer />
 
       {/* Persistent iOS-style Tab Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 h-[calc(68px+env(safe-area-inset-bottom))] bg-white/80 backdrop-blur-xl border-t border-neutral-100 flex items-center justify-around z-40 select-none pb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed bottom-0 left-0 right-0 h-[calc(68px_+_env(safe-area-inset-bottom))] bg-white/80 backdrop-blur-xl border-t border-neutral-100 flex items-center justify-around z-40 select-none pb-[env(safe-area-inset-bottom)]">
         <button
           id="tab-listen-now"
           onClick={() => {
@@ -931,8 +932,10 @@ const AppContent: React.FC = () => {
 
 export default function App() {
   return (
-    <PodcastProvider>
-      <AppContent />
-    </PodcastProvider>
+    <ErrorBoundary>
+      <PodcastProvider>
+        <AppContent />
+      </PodcastProvider>
+    </ErrorBoundary>
   );
 }

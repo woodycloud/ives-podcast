@@ -103,7 +103,7 @@ export const BottomPlayer: React.FC = () => {
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             onClick={() => setIsExpanded(true)}
-            className="fixed bottom-[calc(72px+env(safe-area-inset-bottom))] left-4 right-4 h-16 bg-white/90 backdrop-blur-xl border border-neutral-100 rounded-2xl shadow-lg shadow-neutral-100/40 px-3 flex items-center justify-between cursor-pointer z-40 select-none transition-all duration-300"
+            className="fixed bottom-[calc(72px_+_env(safe-area-inset-bottom))] left-4 right-4 h-16 bg-white/90 backdrop-blur-xl border border-neutral-100 rounded-2xl shadow-lg shadow-neutral-100/40 px-3 flex items-center justify-between cursor-pointer z-40 select-none transition-all duration-300"
           >
             {/* Visual audio progress bar along the very bottom of min player */}
             <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-neutral-100 rounded-b-2xl overflow-hidden">
@@ -180,7 +180,7 @@ export const BottomPlayer: React.FC = () => {
             className="fixed inset-0 bg-white z-50 flex flex-col focus:outline-none"
           >
             {/* Header: drag down handler */}
-            <div className="flex items-center justify-between px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-2 border-b border-neutral-50">
+            <div className="flex items-center justify-between px-6 pt-[calc(1.5rem_+_env(safe-area-inset-top))] pb-2 border-b border-neutral-50">
               <button
                 id="player-dismiss"
                 onClick={() => setIsExpanded(false)}
