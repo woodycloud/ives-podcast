@@ -396,15 +396,23 @@ const AppContent: React.FC = () => {
                           </div>
                         ) : (
                           <div className="space-y-3">
-                            {subscribedEpisodes.map((ep) => {
+                             {subscribedEpisodes.map((ep) => {
                               const isPlayingThis = currentEpisode?.guid === ep.guid;
                               const isPlayingNow = isPlayingThis && isPlaying;
                               
                               const durationMin = ep.duration ? `${Math.round(ep.duration / 60)}m` : "";
-                              const pubDateText = ep.pubDate ? new Date(ep.pubDate).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric"
-                              }) : "";
+                              const pubDateText = (() => {
+                                if (!ep.pubDate) return "";
+                                try {
+                                  const d = new Date(ep.pubDate);
+                                  return isNaN(d.getTime()) ? ep.pubDate : d.toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric"
+                                  });
+                                } catch (e) {
+                                  return ep.pubDate || "";
+                                }
+                              })();
 
                               return (
                                 <div
@@ -440,7 +448,11 @@ const AppContent: React.FC = () => {
                                         )}
                                       </div>
                                       <p className="text-[10px] text-neutral-400 line-clamp-1 font-light leading-relaxed">
-                                        {ep.description?.replace(/<[^>]*>/g, "")}
+                                        {typeof ep.description === "string" 
+                                          ? ep.description.replace(/<[^>]*>/g, "") 
+                                          : (ep.description && typeof ep.description === "object" && ep.description["#text"]
+                                              ? String(ep.description["#text"]).replace(/<[^>]*>/g, "")
+                                              : "")}
                                       </p>
                                     </div>
                                   </div>
@@ -683,7 +695,14 @@ const AppContent: React.FC = () => {
                                   {hist.title}
                                 </h4>
                                 <p className="text-[9px] text-neutral-400 truncate">
-                                  {hist.podcastTitle} • {new Date(hist.playedAt).toLocaleDateString()}
+                                  {hist.podcastTitle} • {(() => {
+                                    try {
+                                      const d = new Date(hist.playedAt);
+                                      return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
+                                    } catch (e) {
+                                      return "";
+                                    }
+                                  })()}
                                 </p>
                               </div>
                             </div>

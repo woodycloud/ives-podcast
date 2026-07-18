@@ -257,7 +257,13 @@ export const BottomPlayer: React.FC = () => {
                     {currentEpisode.showNotes ? (
                       <div 
                         className="text-xs text-neutral-600 leading-relaxed space-y-3 prose prose-sm max-w-none break-words"
-                        dangerouslySetInnerHTML={{ __html: currentEpisode.showNotes }}
+                        dangerouslySetInnerHTML={{ 
+                          __html: typeof currentEpisode.showNotes === "string" 
+                            ? currentEpisode.showNotes 
+                            : (currentEpisode.showNotes && typeof currentEpisode.showNotes === "object" && (currentEpisode.showNotes as any)["#text"]
+                                ? String((currentEpisode.showNotes as any)["#text"])
+                                : "")
+                        }}
                       />
                     ) : (
                       <p className="text-xs text-neutral-400 italic">No notes available for this episode.</p>

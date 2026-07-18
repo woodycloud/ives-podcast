@@ -154,8 +154,15 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
     }
   };
 
-  const stripHtml = (html: string) => {
+  const stripHtml = (html: any) => {
     if (!html) return "";
+    if (typeof html !== "string") {
+      if (html && typeof html === "object") {
+        if (html["#text"]) return String(html["#text"]).replace(/<[^>]*>/g, "").trim();
+        if (html["_"]) return String(html["_"]).replace(/<[^>]*>/g, "").trim();
+      }
+      return "";
+    }
     return html.replace(/<[^>]*>/g, "").trim();
   };
 

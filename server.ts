@@ -114,12 +114,30 @@ app.get("/api/feed", async (req, res) => {
       return Array.isArray(val) ? val : [val];
     };
 
+    // Helper to extract clean string from potentially nested XML tags or objects
+    const xmlString = (val: any): string => {
+      if (val === null || val === undefined) return "";
+      if (typeof val === "string") return val;
+      if (typeof val === "number") return String(val);
+      if (typeof val === "object") {
+        if (val["#text"] !== undefined) return String(val["#text"]);
+        if (val["_"] !== undefined) return String(val["_"]);
+        // If it's a nested structure with child properties (like nested HTML tags), try to stringify
+        try {
+          return JSON.stringify(val);
+        } catch {
+          return "";
+        }
+      }
+      return String(val);
+    };
+
     // Extract show artwork
     let artwork = "";
     if (channel["itunes:image"]) {
-      artwork = channel["itunes:image"]["@_href"] || "";
+      artwork = xmlString(channel["itunes:image"]["@_href"] || "");
     } else if (channel.image) {
-      artwork = channel.image.url || "";
+      artwork = xmlString(channel.image.url || "");
     }
 
     // Map episodes
@@ -127,14 +145,14 @@ app.get("/api/feed", async (req, res) => {
     const episodes = rawItems.map((item: any) => {
       // Find audio enclosure
       const enclosure = item.enclosure;
-      const audioUrl = enclosure ? enclosure["@_url"] : "";
-      const audioType = enclosure ? enclosure["@_type"] : "audio/mpeg";
+      const audioUrl = enclosure ? xmlString(enclosure["@_url"]) : "";
+      const audioType = enclosure ? xmlString(enclosure["@_type"]) : "audio/mpeg";
       const audioLength = enclosure ? parseInt(enclosure["@_length"] || "0", 10) : 0;
 
       // Find episode artwork
       let epArtwork = artwork;
       if (item["itunes:image"]) {
-        epArtwork = item["itunes:image"]["@_href"] || artwork;
+        epArtwork = xmlString(item["itunes:image"]["@_href"]) || artwork;
       }
 
       // Duration parsing (could be hh:mm:ss, mm:ss or seconds)
@@ -154,14 +172,17 @@ app.get("/api/feed", async (req, res) => {
       }
 
       // Content/Show notes
-      const showNotes = item["content:encoded"] || item.description || "";
+      const showNotes = xmlString(item["content:encoded"] || item.description || "");
+
+      const rawGuid = item.guid?.["#text"] || item.guid;
+      const guid = rawGuid ? xmlString(rawGuid) : (xmlString(item.link) || audioUrl);
 
       return {
-        guid: item.guid?.["#text"] || item.guid || item.link || audioUrl,
-        title: item.title || "Untitled Episode",
-        description: item.description || "",
+        guid,
+        title: xmlString(item.title) || "Untitled Episode",
+        description: xmlString(item.description) || "",
         showNotes,
-        pubDate: item.pubDate || "",
+        pubDate: xmlString(item.pubDate) || "",
         audioUrl,
         audioType,
         audioLength,
@@ -171,12 +192,12 @@ app.get("/api/feed", async (req, res) => {
     });
 
     const parsedPodcast = {
-      title: channel.title || "Untitled Podcast",
-      author: channel["itunes:author"] || channel.author || "Unknown Author",
-      description: channel.description || channel["itunes:summary"] || "No description available.",
+      title: xmlString(channel.title) || "Untitled Podcast",
+      author: xmlString(channel["itunes:author"] || channel.author || "Unknown Author"),
+      description: xmlString(channel.description || channel["itunes:summary"] || "No description available."),
       artwork,
-      link: channel.link || "",
-      category: channel["itunes:category"]?.["@_text"] || channel.category || "",
+      link: xmlString(channel.link || ""),
+      category: xmlString(channel["itunes:category"]?.["@_text"] || channel.category || ""),
       episodes,
     };
 
