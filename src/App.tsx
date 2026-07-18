@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { PodcastProvider, usePodcast, Episode, PodcastInfo } from "./context/PodcastContext";
 import { BottomPlayer } from "./components/BottomPlayer";
 import { SearchCategoryGrid } from "./components/SearchCategoryGrid";
-import * as db from "./utils/db";
 import { PodcastDetails } from "./components/PodcastDetails";
 import { SyncSettings } from "./components/SyncSettings";
 import { 
@@ -31,49 +30,6 @@ interface CuratedShow {
   artwork: string;
   description: string;
 }
-
-// Helper functions for safe date formatting and parsing to avoid any runtime RangeError exceptions
-const getSafePubDateText = (pubDate: any) => {
-  if (!pubDate) return "";
-  try {
-    const d = new Date(pubDate);
-    if (isNaN(d.getTime())) {
-      return String(pubDate);
-    }
-    return d.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric"
-    });
-  } catch (e) {
-    return String(pubDate);
-  }
-};
-
-const getSafeHistoryDateText = (playedAt: any) => {
-  if (!playedAt) return "";
-  try {
-    const d = new Date(playedAt);
-    if (isNaN(d.getTime())) {
-      return "";
-    }
-    return d.toLocaleDateString();
-  } catch (e) {
-    return "";
-  }
-};
-
-const getSafeDownloadPubDate = (item: any) => {
-  if (item.pubDate) return item.pubDate;
-  try {
-    const d = new Date(item.downloadedAt || Date.now());
-    if (isNaN(d.getTime())) {
-      return new Date().toLocaleDateString();
-    }
-    return d.toLocaleDateString();
-  } catch (e) {
-    return new Date().toLocaleDateString();
-  }
-};
 
 const AppContent: React.FC = () => {
   const {
@@ -257,24 +213,32 @@ const AppContent: React.FC = () => {
   // Sync / Load offline downloads metadata
   useEffect(() => {
     const loadDownloads = async () => {
-      // Fetch details of downloaded episodes using robust DB helper
+      // Fetch details of downloaded episodes from IndexedDB
       try {
-        const results = await db.getAllDownloads();
-        // Map downloaded records to temporary Episode objects
-        const mapped: Episode[] = results.map((item: any) => ({
-          guid: item.guid,
-          title: item.title,
-          audioUrl: item.audioUrl,
-          artwork: item.artwork || "", // Use actual saved artwork / Base64 image
-          podcastTitle: item.podcastTitle || "Downloaded Episode",
-          pubDate: getSafeDownloadPubDate(item),
-          description: item.description || "Downloaded Episode",
-          showNotes: item.description || "", // Store description as fallback notes so details view isn't blank
-          audioType: "audio/mpeg",
-          audioLength: 0,
-          duration: item.duration || 0
-        }));
-        setDownloadedEpisodes(mapped);
+        const dbOpen = await indexedDB.open("MinimalistPodcastDB", 1);
+        dbOpen.onsuccess = () => {
+          const database = dbOpen.result;
+          const tx = database.transaction("downloads", "readonly");
+          const store = tx.objectStore("downloads");
+          const request = store.getAll();
+          request.onsuccess = () => {
+            const results = request.result || [];
+            // Map downloaded records to temporary Episode objects
+            const mapped: Episode[] = results.map((item: any) => ({
+              guid: item.guid,
+              title: item.title,
+              audioUrl: item.audioUrl,
+              artwork: item.blob ? URL.createObjectURL(item.blob) : "", // blob URL
+              pubDate: new Date(item.downloadedAt).toLocaleDateString(),
+              description: "Downloaded Episode",
+              showNotes: "",
+              audioType: "audio/mpeg",
+              audioLength: 0,
+              duration: 0
+            }));
+            setDownloadedEpisodes(mapped);
+          };
+        };
       } catch (e) {
         console.error("Failed to load local downloads list", e);
       }
@@ -446,7 +410,10 @@ const AppContent: React.FC = () => {
                               const isPlayingNow = isPlayingThis && isPlaying;
                               
                               const durationMin = ep.duration ? `${Math.round(ep.duration / 60)}m` : "";
-                              const pubDateText = getSafePubDateText(ep.pubDate);
+                              const pubDateText = ep.pubDate ? new Date(ep.pubDate).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric"
+                              }) : "";
 
                               return (
                                 <div
@@ -725,7 +692,7 @@ const AppContent: React.FC = () => {
                                   {hist.title}
                                 </h4>
                                 <p className="text-[9px] text-neutral-400 truncate">
-                                  {hist.podcastTitle} • {getSafeHistoryDateText(hist.playedAt)}
+                                  {hist.podcastTitle} • {new Date(hist.playedAt).toLocaleDateString()}
                                 </p>
                               </div>
                             </div>

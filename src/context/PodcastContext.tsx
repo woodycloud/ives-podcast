@@ -407,40 +407,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       const blob = new Blob(chunks, { type: "audio/mpeg" });
-
-      // Try to download and cache artwork offline as Base64 data URL
-      let savedArtwork = episode.artwork;
-      if (episode.artwork) {
-        try {
-          const artResp = await fetch(`/api/proxy-media?url=${encodeURIComponent(episode.artwork)}`);
-          if (artResp.ok) {
-            const artBlob = await artResp.blob();
-            const base64 = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(artBlob);
-            });
-            if (base64) {
-              savedArtwork = base64;
-            }
-          }
-        } catch (e) {
-          console.warn("Failed to download and convert artwork to Base64, falling back to original URL", e);
-        }
-      }
-
-      await db.saveDownload(
-        guid,
-        episode.title,
-        episode.audioUrl,
-        blob,
-        savedArtwork,
-        podcastTitle || episode.podcastTitle,
-        episode.duration,
-        episode.pubDate,
-        episode.description
-      );
+      await db.saveDownload(guid, episode.title, episode.audioUrl, blob);
       
       setDownloads(prev => [...prev, guid]);
       setDownloadingProgress(prev => {
@@ -498,7 +465,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const localDownload = await db.getDownload(episode.guid);
       let audioSrc = "";
 
-      if (localDownload && localDownload.blob && localDownload.blob instanceof Blob) {
+      if (localDownload) {
         // Play downloaded local file from Blob URL
         audioSrc = URL.createObjectURL(localDownload.blob);
         console.log("Playing from local offline cache");
@@ -515,25 +482,8 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Check if we have progress saved
       const savedProg = await db.getProgress(episode.guid);
       if (savedProg && !savedProg.completed && savedProg.currentTime > 5) {
-        const targetTime = savedProg.currentTime;
-        try {
-          audioRef.current.currentTime = targetTime;
-          setCurrentTime(targetTime);
-        } catch (seekError) {
-          console.warn("Direct seek failed. Retrying on loadedmetadata event:", seekError);
-          const handleMetadata = () => {
-            try {
-              if (audioRef.current) {
-                audioRef.current.currentTime = targetTime;
-                setCurrentTime(targetTime);
-              }
-            } catch (innerErr) {
-              console.error("Delayed seek failed:", innerErr);
-            }
-            audioRef.current?.removeEventListener("loadedmetadata", handleMetadata);
-          };
-          audioRef.current.addEventListener("loadedmetadata", handleMetadata);
-        }
+        audioRef.current.currentTime = savedProg.currentTime;
+        setCurrentTime(savedProg.currentTime);
       }
 
       await audioRef.current.play();
@@ -565,36 +515,24 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const seekTo = (time: number) => {
     if (audioRef.current) {
-      try {
-        audioRef.current.currentTime = time;
-        setCurrentTime(time);
-      } catch (err) {
-        console.warn("Seek failed:", err);
-      }
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
     }
   };
 
   const skipForward = () => {
     if (audioRef.current) {
-      try {
-        const newTime = Math.min(audioRef.current.currentTime + 15, audioRef.current.duration || 0);
-        audioRef.current.currentTime = newTime;
-        setCurrentTime(newTime);
-      } catch (err) {
-        console.warn("Skip forward failed:", err);
-      }
+      const newTime = Math.min(audioRef.current.currentTime + 15, audioRef.current.duration || 0);
+      audioRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
     }
   };
 
   const skipBackward = () => {
     if (audioRef.current) {
-      try {
-        const newTime = Math.max(audioRef.current.currentTime - 15, 0);
-        audioRef.current.currentTime = newTime;
-        setCurrentTime(newTime);
-      } catch (err) {
-        console.warn("Skip backward failed:", err);
-      }
+      const newTime = Math.max(audioRef.current.currentTime - 15, 0);
+      audioRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
     }
   };
 

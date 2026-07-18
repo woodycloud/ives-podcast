@@ -13,8 +13,7 @@ import {
   Check, 
   Clock, 
   FileText, 
-  CornerDownRight,
-  Radio
+  CornerDownRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -115,18 +114,12 @@ export const BottomPlayer: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-3 min-w-0 flex-1">
-              {currentEpisode.artwork ? (
-                <img
-                  src={currentEpisode.artwork}
-                  alt={currentEpisode.title}
-                  className="w-10 h-10 rounded-lg object-cover shadow-sm bg-neutral-100"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-lg bg-neutral-50 flex items-center justify-center text-neutral-400 border border-neutral-100">
-                  <Radio className="w-5 h-5 text-neutral-400" />
-                </div>
-              )}
+              <img
+                src={currentEpisode.artwork}
+                alt={currentEpisode.title}
+                className="w-10 h-10 rounded-lg object-cover shadow-sm bg-neutral-100"
+                referrerPolicy="no-referrer"
+              />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-neutral-800 truncate">
                   {currentEpisode.title}
@@ -222,18 +215,12 @@ export const BottomPlayer: React.FC = () => {
                   >
                     {/* Big Artwork */}
                     <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-2xl overflow-hidden shadow-2xl shadow-neutral-300">
-                      {currentEpisode.artwork ? (
-                        <img
-                          src={currentEpisode.artwork}
-                          alt={currentEpisode.title}
-                          className="w-full h-full object-cover select-none"
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-neutral-50 flex items-center justify-center text-neutral-300 border border-neutral-100">
-                          <Radio className="w-16 h-16 text-neutral-300" />
-                        </div>
-                      )}
+                      <img
+                        src={currentEpisode.artwork}
+                        alt={currentEpisode.title}
+                        className="w-full h-full object-cover select-none"
+                        referrerPolicy="no-referrer"
+                      />
                       {isPlaying && (
                         <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md text-white rounded-full p-1.5 flex items-center justify-center">
                           <Activity className="w-4 h-4 animate-pulse text-[#007AFF]" />
