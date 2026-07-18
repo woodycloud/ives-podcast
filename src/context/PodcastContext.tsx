@@ -465,7 +465,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const localDownload = await db.getDownload(episode.guid);
       let audioSrc = "";
 
-      if (localDownload) {
+      if (localDownload && localDownload.blob) {
         // Play downloaded local file from Blob URL
         audioSrc = URL.createObjectURL(localDownload.blob);
         console.log("Playing from local offline cache");
@@ -578,15 +578,12 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const clearHistory = async () => {
-    // We can clear IndexedDB history store entirely if desired, or set state to empty
-    // Let's implement simple state clearing and delete from IndexedDB (though usually history stays, clearing is nice)
-    const dbOpen = await indexedDB.open("MinimalistPodcastDB", 1);
-    dbOpen.onsuccess = () => {
-      const database = dbOpen.result;
-      const tx = database.transaction("history", "readwrite");
-      tx.objectStore("history").clear();
-      setHistory([]);
-    };
+    try {
+      await db.clearAllHistory();
+    } catch (e) {
+      console.error("Failed to clear playback history", e);
+    }
+    setHistory([]);
   };
 
   return (

@@ -391,3 +391,25 @@ export async function getAllHistory(): Promise<PlaybackHistory[]> {
     }
   });
 }
+
+export async function clearAllHistory(): Promise<void> {
+  const db = await openDB();
+  if (!db || useFallback) {
+    fallbackStore.history = {};
+    saveFallbackToLocalStorage();
+    return;
+  }
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = db.transaction("history", "readwrite");
+      const store = transaction.objectStore("history");
+      const request = store.clear();
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    } catch (e) {
+      fallbackStore.history = {};
+      saveFallbackToLocalStorage();
+      resolve();
+    }
+  });
+}

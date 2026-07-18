@@ -3,6 +3,7 @@ import { PodcastProvider, usePodcast, Episode, PodcastInfo } from "./context/Pod
 import { BottomPlayer } from "./components/BottomPlayer";
 import { SearchCategoryGrid } from "./components/SearchCategoryGrid";
 import { PodcastDetails } from "./components/PodcastDetails";
+import * as db from "./utils/db";
 import { SyncSettings } from "./components/SyncSettings";
 import { 
   Radio, 
@@ -213,32 +214,22 @@ const AppContent: React.FC = () => {
   // Sync / Load offline downloads metadata
   useEffect(() => {
     const loadDownloads = async () => {
-      // Fetch details of downloaded episodes from IndexedDB
+      // Fetch details of downloaded episodes safely from IndexedDB wrapper
       try {
-        const dbOpen = await indexedDB.open("MinimalistPodcastDB", 1);
-        dbOpen.onsuccess = () => {
-          const database = dbOpen.result;
-          const tx = database.transaction("downloads", "readonly");
-          const store = tx.objectStore("downloads");
-          const request = store.getAll();
-          request.onsuccess = () => {
-            const results = request.result || [];
-            // Map downloaded records to temporary Episode objects
-            const mapped: Episode[] = results.map((item: any) => ({
-              guid: item.guid,
-              title: item.title,
-              audioUrl: item.audioUrl,
-              artwork: item.blob ? URL.createObjectURL(item.blob) : "", // blob URL
-              pubDate: new Date(item.downloadedAt).toLocaleDateString(),
-              description: "Downloaded Episode",
-              showNotes: "",
-              audioType: "audio/mpeg",
-              audioLength: 0,
-              duration: 0
-            }));
-            setDownloadedEpisodes(mapped);
-          };
-        };
+        const results = await db.getAllDownloads();
+        const mapped: Episode[] = results.map((item: any) => ({
+          guid: item.guid,
+          title: item.title,
+          audioUrl: item.audioUrl,
+          artwork: item.blob ? URL.createObjectURL(item.blob) : "", // blob URL
+          pubDate: new Date(item.downloadedAt).toLocaleDateString(),
+          description: "Downloaded Episode",
+          showNotes: "",
+          audioType: "audio/mpeg",
+          audioLength: 0,
+          duration: 0
+        }));
+        setDownloadedEpisodes(mapped);
       } catch (e) {
         console.error("Failed to load local downloads list", e);
       }
