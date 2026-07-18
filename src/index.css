@@ -6,6 +6,8 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
+@variant dark (&:where(.dark, .dark *));
+
 /* Custom minimal scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -18,8 +20,14 @@
   background: rgba(0, 0, 0, 0.08);
   border-radius: 99px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.15);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Hide utility outlines on tap */

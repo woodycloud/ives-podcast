@@ -21,7 +21,10 @@ import {
   Trash2,
   FolderDown,
   History,
-  Info
+  Info,
+  Sun,
+  Moon,
+  Monitor
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -51,6 +54,37 @@ const AppContent: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<"listen_now" | "library" | "search" | "sync">("listen_now");
   const [selectedFeedUrl, setSelectedFeedUrl] = useState<string | null>(null);
+
+  // Theme state and system preference syncing
+  const [theme, setTheme] = useState<"light" | "dark" | "system">(() => {
+    const saved = localStorage.getItem("theme");
+    return (saved as "light" | "dark" | "system") || "system";
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const applyTheme = () => {
+      const isDark =
+        theme === "dark" ||
+        (theme === "system" && mediaQuery.matches);
+      
+      if (isDark) {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
+    };
+
+    applyTheme();
+    localStorage.setItem("theme", theme);
+
+    if (theme === "system") {
+      mediaQuery.addEventListener("change", applyTheme);
+      return () => mediaQuery.removeEventListener("change", applyTheme);
+    }
+  }, [theme]);
   
   // Search State
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -282,28 +316,50 @@ const AppContent: React.FC = () => {
     return new Date().toLocaleDateString("en-US", options);
   };
 
+  const cycleTheme = () => {
+    if (theme === "light") setTheme("dark");
+    else if (theme === "dark") setTheme("system");
+    else setTheme("light");
+  };
+
   return (
-    <div className="min-h-screen bg-neutral-50/60 pb-[calc(144px_+_env(safe-area-inset-bottom))] flex flex-col antialiased">
+    <div className="min-h-screen bg-neutral-50/60 dark:bg-neutral-950 pb-[calc(144px_+_env(safe-area-inset-bottom))] flex flex-col antialiased transition-colors duration-300">
       {/* Top Bar Status Monitor */}
-      <header className="sticky top-0 bg-white/70 backdrop-blur-md border-b border-neutral-100 z-30 px-6 py-3 flex items-center justify-between">
+      <header className="sticky top-0 bg-white/70 dark:bg-neutral-900/70 backdrop-blur-md border-b border-neutral-100 dark:border-neutral-800 z-30 px-6 py-3 flex items-center justify-between transition-colors duration-300">
         <div className="flex items-center space-x-2">
           <span className="w-2.5 h-2.5 rounded-full bg-[#007AFF] animate-pulse" />
-          <h1 className="text-sm font-black tracking-wide text-neutral-900 select-none">Ives' Podcast</h1>
+          <h1 className="text-sm font-black tracking-wide text-neutral-900 dark:text-neutral-100 select-none">Ives' Podcast</h1>
         </div>
 
-        {/* Network status */}
-        <div className="flex items-center space-x-1">
-          {isOnline ? (
-            <div className="flex items-center text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 select-none">
-              <Wifi className="w-3 h-3 mr-1" />
-              <span>Online</span>
-            </div>
-          ) : (
-            <div className="flex items-center text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-full select-none">
-              <WifiOff className="w-3 h-3 mr-1" />
-              <span>Offline Mode</span>
-            </div>
-          )}
+        {/* Action icons and status */}
+        <div className="flex items-center space-x-3">
+          {/* Theme Toggle Button */}
+          <button
+            id="theme-toggle"
+            onClick={cycleTheme}
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 transition-all duration-200 active:scale-95"
+            title={`Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)} (Click to cycle)`}
+            aria-label={`Change theme, current: ${theme}`}
+          >
+            {theme === "light" && <Sun className="w-3.5 h-3.5 stroke-[2.25]" />}
+            {theme === "dark" && <Moon className="w-3.5 h-3.5 stroke-[2.25]" />}
+            {theme === "system" && <Monitor className="w-3.5 h-3.5 stroke-[2.25]" />}
+          </button>
+
+          {/* Network status */}
+          <div className="flex items-center space-x-1">
+            {isOnline ? (
+              <div className="flex items-center text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-full border border-emerald-100 dark:border-emerald-900/40 select-none">
+                <Wifi className="w-3 h-3 mr-1" />
+                <span>Online</span>
+              </div>
+            ) : (
+              <div className="flex items-center text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-900 px-2.5 py-1 rounded-full select-none">
+                <WifiOff className="w-3 h-3 mr-1" />
+                <span>Offline Mode</span>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -338,10 +394,10 @@ const AppContent: React.FC = () => {
               {activeTab === "listen_now" && (
                 <div className="space-y-6">
                   <div className="space-y-1 text-left">
-                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">
                       {getFormattedDate()}
                     </span>
-                    <h2 className="text-2xl font-black text-neutral-900 tracking-tight">Listen Now</h2>
+                    <h2 className="text-2xl font-black text-neutral-900 dark:text-neutral-100 tracking-tight">Listen Now</h2>
                   </div>
 
                   {/* Curated Recommendations or Latest Subscribed Episodes */}
@@ -363,19 +419,19 @@ const AppContent: React.FC = () => {
                               <div
                                 key={show.feedUrl || i}
                                 onClick={() => setSelectedFeedUrl(show.feedUrl)}
-                                className="bg-white rounded-2xl p-3 border border-neutral-100 shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-98 transition-all cursor-pointer flex flex-col text-left space-y-2.5 select-none"
+                                className="bg-white dark:bg-neutral-900 rounded-2xl p-3 border border-neutral-100 dark:border-neutral-800 shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-98 transition-all cursor-pointer flex flex-col text-left space-y-2.5 select-none"
                               >
                                 <img
                                   src={show.artwork}
                                   alt={show.title}
-                                  className="w-full aspect-square rounded-xl object-cover shadow-sm bg-neutral-100"
+                                  className="w-full aspect-square rounded-xl object-cover shadow-sm bg-neutral-100 dark:bg-neutral-800"
                                   referrerPolicy="no-referrer"
                                 />
                                 <div className="space-y-0.5">
-                                  <h4 className="text-xs font-bold text-neutral-800 line-clamp-1 leading-normal">
+                                  <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-200 line-clamp-1 leading-normal">
                                     {show.title}
                                   </h4>
-                                  <p className="text-[10px] text-neutral-400 truncate">
+                                  <p className="text-[10px] text-neutral-400 dark:text-neutral-500 truncate">
                                     {show.author}
                                   </p>
                                 </div>
@@ -418,7 +474,7 @@ const AppContent: React.FC = () => {
                               return (
                                 <div
                                   key={ep.guid}
-                                  className="bg-white rounded-2xl p-4 border border-neutral-100 shadow-sm flex items-start justify-between space-x-4 hover:shadow-md transition-all select-none"
+                                  className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-neutral-100 dark:border-neutral-800 shadow-sm flex items-start justify-between space-x-4 hover:shadow-md transition-all select-none"
                                 >
                                   {/* Left: Artwork & Details */}
                                   <div 
@@ -428,14 +484,14 @@ const AppContent: React.FC = () => {
                                     <img
                                       src={ep.podcastArtwork || ep.artwork}
                                       alt={ep.podcastTitle}
-                                      className="w-12 h-12 rounded-xl object-cover border border-neutral-100 shadow-sm flex-shrink-0 bg-neutral-100"
+                                      className="w-12 h-12 rounded-xl object-cover border border-neutral-100 dark:border-neutral-800 shadow-sm flex-shrink-0 bg-neutral-100 dark:bg-neutral-800"
                                       referrerPolicy="no-referrer"
                                     />
                                     <div className="min-w-0 text-left space-y-1">
-                                      <h4 className="text-xs font-bold text-neutral-800 line-clamp-1 leading-snug">
+                                      <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-200 line-clamp-1 leading-snug">
                                         {ep.title}
                                       </h4>
-                                      <div className="flex items-center space-x-1.5 text-[10px] font-medium text-neutral-400">
+                                      <div className="flex items-center space-x-1.5 text-[10px] font-medium text-neutral-400 dark:text-neutral-500">
                                         <span className="text-[#007AFF] font-semibold max-w-[120px] truncate">
                                           {ep.podcastTitle}
                                         </span>
@@ -448,7 +504,7 @@ const AppContent: React.FC = () => {
                                           </>
                                         )}
                                       </div>
-                                      <p className="text-[10px] text-neutral-400 line-clamp-1 font-light leading-relaxed">
+                                      <p className="text-[10px] text-neutral-400 dark:text-neutral-500 line-clamp-1 font-light leading-relaxed">
                                         {typeof ep.description === "string" 
                                           ? ep.description.replace(/<[^>]*>/g, "") 
                                           : (ep.description && typeof ep.description === "object" && ep.description["#text"]
@@ -470,7 +526,7 @@ const AppContent: React.FC = () => {
                                     className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 ${
                                       isPlayingNow
                                         ? "bg-[#007AFF] text-white shadow-sm shadow-[#007AFF]/10"
-                                        : "bg-neutral-50 border border-neutral-200 text-neutral-800 hover:bg-neutral-100"
+                                        : "bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700"
                                     }`}
                                   >
                                     {isPlayingNow ? (
@@ -505,48 +561,48 @@ const AppContent: React.FC = () => {
                     </h3>
 
                     {subscriptions.length === 0 ? (
-                      <div className="bg-white rounded-2xl p-6 border border-dashed border-neutral-200 text-center space-y-3.5">
-                        <p className="text-xs text-neutral-500 leading-normal">
+                      <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 border border-dashed border-neutral-200 dark:border-neutral-800 text-center space-y-3.5">
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-normal">
                           You haven't subscribed to any shows yet. Search for your favourite podcasts or click on recommendations to subscribe and sync.
                         </p>
                         <button
                           onClick={() => setActiveTab("search")}
-                          className="text-xs font-bold px-4 py-2 bg-neutral-900 text-white hover:bg-neutral-800 active:scale-95 transition-all rounded-full"
+                          className="text-xs font-bold px-4 py-2 bg-neutral-900 dark:bg-neutral-100 dark:text-neutral-950 text-white hover:bg-neutral-800 dark:hover:bg-neutral-200 active:scale-95 transition-all rounded-full"
                         >
                           Go to Search & Explore
                         </button>
                       </div>
                     ) : (
-                      <div className="divide-y divide-neutral-100 bg-white rounded-2xl border border-neutral-100 overflow-hidden shadow-sm text-left">
+                      <div className="divide-y divide-neutral-100 dark:divide-neutral-800 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-100 dark:border-neutral-800 overflow-hidden shadow-sm text-left">
                         {subscriptions.slice(0, 4).map((sub) => (
                           <div
                             key={sub.feedUrl}
                             onClick={() => setSelectedFeedUrl(sub.feedUrl)}
-                            className="p-3.5 flex items-center justify-between hover:bg-neutral-50/50 cursor-pointer transition-colors group select-none"
+                            className="p-3.5 flex items-center justify-between hover:bg-neutral-50/50 dark:hover:bg-neutral-800/50 cursor-pointer transition-colors group select-none"
                           >
                             <div className="flex items-center space-x-3 min-w-0">
                               <img
                                 src={sub.artwork}
                                 alt={sub.title}
-                                className="w-10 h-10 rounded-lg object-cover shadow-sm border border-neutral-50 bg-neutral-100"
+                                className="w-10 h-10 rounded-lg object-cover shadow-sm border border-neutral-50 dark:border-neutral-800 bg-neutral-100"
                                 referrerPolicy="no-referrer"
                               />
                               <div className="min-w-0">
-                                <h4 className="text-xs font-bold text-neutral-800 truncate group-hover:text-neutral-900">
+                                <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-200 truncate group-hover:text-neutral-900 dark:group-hover:text-white">
                                   {sub.title}
                                 </h4>
-                                <p className="text-[10px] text-neutral-400 truncate">
+                                <p className="text-[10px] text-neutral-400 dark:text-neutral-500 truncate">
                                   {sub.author}
                                 </p>
                               </div>
                             </div>
-                            <ChevronRight className="w-4 h-4 text-neutral-300 group-hover:translate-x-0.5 transition-transform" />
+                            <ChevronRight className="w-4 h-4 text-neutral-300 dark:text-neutral-600 group-hover:translate-x-0.5 transition-transform" />
                           </div>
                         ))}
                         {subscriptions.length > 4 && (
                           <button
                             onClick={() => setActiveTab("library")}
-                            className="w-full py-3 text-center text-[11px] font-bold text-[#007AFF] hover:text-[#007AFF]/85 hover:bg-neutral-50 transition-colors"
+                            className="w-full py-3 text-center text-[11px] font-bold text-[#007AFF] hover:text-[#007AFF]/85 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
                           >
                             View all {subscriptions.length} subscribed shows
                           </button>
@@ -561,7 +617,7 @@ const AppContent: React.FC = () => {
               {activeTab === "library" && (
                 <div className="space-y-6">
                   <div className="text-left">
-                    <h2 className="text-2xl font-black text-neutral-900 tracking-tight">My Library</h2>
+                    <h2 className="text-2xl font-black text-neutral-900 dark:text-neutral-100 tracking-tight">My Library</h2>
                   </div>
 
                   {/* Subscribed grid */}
@@ -571,7 +627,7 @@ const AppContent: React.FC = () => {
                     </h3>
 
                     {subscriptions.length === 0 ? (
-                      <div className="bg-white rounded-2xl p-6 border border-neutral-100 text-center text-xs text-neutral-400">
+                      <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 border border-neutral-100 dark:border-neutral-800 text-center text-xs text-neutral-400 dark:text-neutral-500">
                         No subscribed podcasts yet.
                       </div>
                     ) : (
@@ -585,10 +641,10 @@ const AppContent: React.FC = () => {
                             <img
                               src={sub.artwork}
                               alt={sub.title}
-                              className="w-full aspect-square rounded-xl object-cover shadow-sm border border-neutral-100 bg-neutral-100"
+                              className="w-full aspect-square rounded-xl object-cover shadow-sm border border-neutral-100 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800"
                               referrerPolicy="no-referrer"
                             />
-                            <h4 className="text-[11px] font-bold text-neutral-800 line-clamp-1 group-hover:text-neutral-900">
+                            <h4 className="text-[11px] font-bold text-neutral-800 dark:text-neutral-200 line-clamp-1 group-hover:text-neutral-900 dark:group-hover:text-white">
                               {sub.title}
                             </h4>
                           </div>
@@ -605,21 +661,21 @@ const AppContent: React.FC = () => {
                     </h3>
 
                     {downloads.length === 0 ? (
-                      <div className="bg-white rounded-2xl p-5 border border-neutral-100 text-center text-xs text-neutral-400 leading-normal">
+                      <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-neutral-100 dark:border-neutral-800 text-center text-xs text-neutral-400 dark:text-neutral-500 leading-normal">
                         No offline episodes downloaded.<br />Tap the download icon in episode details to download and listen offline.
                       </div>
                     ) : (
-                      <div className="divide-y divide-neutral-100 bg-white rounded-2xl border border-neutral-100 overflow-hidden shadow-sm text-left">
+                      <div className="divide-y divide-neutral-100 dark:divide-neutral-800 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-100 dark:border-neutral-800 overflow-hidden shadow-sm text-left">
                         {downloadedEpisodes.map((ep) => (
                           <div
                             key={ep.guid}
-                            className="p-3.5 flex items-center justify-between hover:bg-neutral-50/50 transition-colors group select-none"
+                            className="p-3.5 flex items-center justify-between hover:bg-neutral-50/50 dark:hover:bg-neutral-800/50 transition-colors group select-none"
                           >
                             <div className="flex-1 min-w-0 pr-4">
-                              <h4 className="text-xs font-bold text-neutral-800 truncate">
+                              <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-200 truncate">
                                 {ep.title}
                               </h4>
-                              <p className="text-[9px] text-neutral-400 mt-0.5 font-mono">
+                              <p className="text-[9px] text-neutral-400 dark:text-neutral-500 mt-0.5 font-mono">
                                 Downloaded on {ep.pubDate}
                               </p>
                             </div>
@@ -633,7 +689,7 @@ const AppContent: React.FC = () => {
                               </button>
                               <button
                                 onClick={() => removeDownload(ep.guid)}
-                                className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-[#FF3B30]/10 text-neutral-400 hover:text-[#FF3B30] flex items-center justify-center transition-all active:scale-90"
+                                className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-[#FF3B30]/10 dark:hover:bg-[#FF3B30]/20 text-neutral-400 dark:text-neutral-500 hover:text-[#FF3B30] flex items-center justify-center transition-all active:scale-90"
                                 title="Delete download"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -653,11 +709,11 @@ const AppContent: React.FC = () => {
                     </h3>
 
                     {history.length === 0 ? (
-                      <div className="bg-white rounded-2xl p-4 border border-neutral-100 text-center text-xs text-neutral-400">
+                      <div className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-neutral-100 dark:border-neutral-800 text-center text-xs text-neutral-400 dark:text-neutral-500">
                         No playback history yet.
                       </div>
                     ) : (
-                      <div className="divide-y divide-neutral-100 bg-white rounded-2xl border border-neutral-100 overflow-hidden shadow-sm text-left">
+                      <div className="divide-y divide-neutral-100 dark:divide-neutral-800 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-100 dark:border-neutral-800 overflow-hidden shadow-sm text-left">
                         {history.slice(0, 5).map((hist) => {
                           const tempEp: Episode = {
                              guid: hist.guid,
@@ -683,19 +739,19 @@ const AppContent: React.FC = () => {
                                   audioUrl: `https://itunes.apple.com` // placeholder, will try to fall back or search
                                 }, hist.podcastTitle);
                               }}
-                              className="p-3 flex items-center space-x-3 cursor-pointer hover:bg-neutral-50/50 transition-colors select-none"
+                              className="p-3 flex items-center space-x-3 cursor-pointer hover:bg-neutral-50/50 dark:hover:bg-neutral-800/50 transition-colors select-none"
                             >
                               <img
                                 src={hist.artwork}
                                 alt={hist.title}
-                                className="w-9 h-9 rounded-md object-cover flex-shrink-0 bg-neutral-100"
+                                className="w-9 h-9 rounded-md object-cover flex-shrink-0 bg-neutral-100 dark:bg-neutral-800"
                                 referrerPolicy="no-referrer"
                               />
                               <div className="flex-1 min-w-0">
-                                <h4 className="text-[11px] font-bold text-neutral-800 truncate">
+                                <h4 className="text-[11px] font-bold text-neutral-800 dark:text-neutral-200 truncate">
                                   {hist.title}
                                 </h4>
-                                <p className="text-[9px] text-neutral-400 truncate">
+                                <p className="text-[9px] text-neutral-400 dark:text-neutral-500 truncate">
                                   {hist.podcastTitle} • {(() => {
                                     try {
                                       const d = new Date(hist.playedAt);
@@ -719,7 +775,7 @@ const AppContent: React.FC = () => {
               {activeTab === "search" && (
                 <div className="space-y-6">
                   <div className="text-left">
-                    <h2 className="text-2xl font-black text-neutral-900 tracking-tight">Search</h2>
+                    <h2 className="text-2xl font-black text-neutral-900 dark:text-neutral-100 tracking-tight">Search</h2>
                   </div>
 
                   {/* Search input bar */}
@@ -729,9 +785,9 @@ const AppContent: React.FC = () => {
                       placeholder="Search podcasts, episodes, authors..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3.5 bg-white border border-neutral-200 rounded-2xl text-xs text-neutral-800 placeholder-neutral-400 shadow-sm focus:border-[#007AFF] focus:bg-white outline-none transition-all"
+                      className="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl text-xs text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 shadow-sm focus:border-[#007AFF] focus:bg-white dark:focus:bg-neutral-900 outline-none transition-all"
                     />
-                    <Search className="w-4 h-4 text-neutral-400 absolute left-4 top-4" />
+                    <Search className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute left-4 top-4" />
                     {searchQuery && (
                       <button
                         type="button"
@@ -739,7 +795,7 @@ const AppContent: React.FC = () => {
                           setSearchQuery("");
                           setSearchResults([]);
                         }}
-                        className="text-[10px] font-bold text-neutral-400 hover:text-neutral-900 absolute right-4 top-4"
+                        className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 absolute right-4 top-4"
                       >
                         Clear
                       </button>
@@ -760,7 +816,7 @@ const AppContent: React.FC = () => {
                         Found {searchResults.length} podcasts
                       </h3>
 
-                      <div className="divide-y divide-neutral-100 bg-white rounded-2xl border border-neutral-100 overflow-hidden shadow-sm">
+                      <div className="divide-y divide-neutral-100 dark:divide-neutral-800 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-100 dark:border-neutral-800 overflow-hidden shadow-sm">
                         {searchResults.map((item) => {
                           const subFeedUrl = item.feedUrl;
                           if (!subFeedUrl) return null;
@@ -770,24 +826,24 @@ const AppContent: React.FC = () => {
                             <div
                               key={subFeedUrl}
                               onClick={() => setSelectedFeedUrl(subFeedUrl)}
-                              className="p-3.5 flex items-center justify-between hover:bg-neutral-50/50 cursor-pointer transition-colors group select-none"
+                              className="p-3.5 flex items-center justify-between hover:bg-neutral-50/50 dark:hover:bg-neutral-800/50 cursor-pointer transition-colors group select-none"
                             >
                               <div className="flex items-center space-x-3 min-w-0 flex-1 pr-2">
                                 <img
                                   src={item.artworkUrl100 || item.artworkUrl600}
                                   alt={item.collectionName}
-                                  className="w-12 h-12 rounded-xl object-cover shadow-sm border border-neutral-50 flex-shrink-0 bg-neutral-100"
+                                  className="w-12 h-12 rounded-xl object-cover shadow-sm border border-neutral-50 dark:border-neutral-800 flex-shrink-0 bg-neutral-100 dark:bg-neutral-800"
                                   referrerPolicy="no-referrer"
                                 />
                                 <div className="min-w-0">
-                                  <h4 className="text-xs font-bold text-neutral-800 truncate group-hover:text-[#007AFF] transition-colors">
+                                  <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-200 truncate group-hover:text-[#007AFF] transition-colors">
                                     {item.collectionName}
                                   </h4>
-                                  <p className="text-[10px] text-neutral-400 truncate">
+                                  <p className="text-[10px] text-neutral-400 dark:text-neutral-500 truncate">
                                     {item.artistName}
                                   </p>
                                   {item.genres && (
-                                    <span className="inline-block text-[9px] text-[#007AFF] bg-[#007AFF]/10 px-1.5 py-0.2 rounded-md mt-1 scale-90 origin-left font-semibold">
+                                    <span className="inline-block text-[9px] text-[#007AFF] bg-[#007AFF]/10 dark:bg-[#007AFF]/20 px-1.5 py-0.2 rounded-md mt-1 scale-90 origin-left font-semibold">
                                       {item.genres[0]}
                                     </span>
                                   )}
@@ -798,8 +854,8 @@ const AppContent: React.FC = () => {
                                 onClick={(e) => handleQuickSubscribe(e, item)}
                                 className={`text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center flex-shrink-0 ${
                                   isSub
-                                    ? "bg-neutral-50 text-emerald-600 border border-emerald-100"
-                                    : "bg-neutral-900 text-white hover:bg-neutral-800"
+                                    ? "bg-neutral-50 dark:bg-neutral-800 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900"
+                                    : "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-200"
                                 }`}
                               >
                                 {isSub ? (
@@ -847,7 +903,7 @@ const AppContent: React.FC = () => {
               {activeTab === "sync" && (
                 <div className="space-y-6">
                   <div className="text-left">
-                    <h2 className="text-2xl font-black text-neutral-900 tracking-tight">Sync Settings</h2>
+                    <h2 className="text-2xl font-black text-neutral-900 dark:text-neutral-100 tracking-tight">Sync Settings</h2>
                   </div>
                   <SyncSettings />
                 </div>
@@ -861,7 +917,7 @@ const AppContent: React.FC = () => {
       <BottomPlayer />
 
       {/* Persistent iOS-style Tab Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 h-[calc(68px_+_env(safe-area-inset-bottom))] bg-white/80 backdrop-blur-xl border-t border-neutral-100 flex items-center justify-around z-40 select-none pb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed bottom-0 left-0 right-0 h-[calc(68px_+_env(safe-area-inset-bottom))] bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-around z-40 select-none pb-[env(safe-area-inset-bottom)] transition-colors duration-300">
         <button
           id="tab-listen-now"
           onClick={() => {
@@ -871,7 +927,7 @@ const AppContent: React.FC = () => {
           className={`flex flex-col items-center justify-center space-y-1 w-16 transition-all ${
             activeTab === "listen_now" && !selectedFeedUrl
               ? "text-[#007AFF] scale-105"
-              : "text-neutral-400 hover:text-neutral-600"
+              : "text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300"
           }`}
         >
           <Radio className="w-5 h-5 stroke-[2.25px]" />
@@ -887,7 +943,7 @@ const AppContent: React.FC = () => {
           className={`flex flex-col items-center justify-center space-y-1 w-16 transition-all ${
             activeTab === "library" && !selectedFeedUrl
               ? "text-[#007AFF] scale-105"
-              : "text-neutral-400 hover:text-neutral-600"
+              : "text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300"
           }`}
         >
           <BookOpen className="w-5 h-5 stroke-[2.25px]" />
@@ -903,7 +959,7 @@ const AppContent: React.FC = () => {
           className={`flex flex-col items-center justify-center space-y-1 w-16 transition-all ${
             activeTab === "search" && !selectedFeedUrl
               ? "text-[#007AFF] scale-105"
-              : "text-neutral-400 hover:text-neutral-600"
+              : "text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300"
           }`}
         >
           <Search className="w-5 h-5 stroke-[2.25px]" />
@@ -919,7 +975,7 @@ const AppContent: React.FC = () => {
           className={`flex flex-col items-center justify-center space-y-1 w-16 transition-all ${
             activeTab === "sync" && !selectedFeedUrl
               ? "text-[#007AFF] scale-105"
-              : "text-neutral-400 hover:text-neutral-600"
+              : "text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300"
           }`}
         >
           <Cloud className="w-5 h-5 stroke-[2.25px]" />

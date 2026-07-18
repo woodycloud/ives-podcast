@@ -65,7 +65,7 @@ interface SearchCategoryGridProps {
 export const SearchCategoryGrid: React.FC<SearchCategoryGridProps> = ({ onSelectCategory }) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-bold text-neutral-800 px-1">Explore Popular Categories</h3>
+      <h3 className="text-sm font-bold text-neutral-800 dark:text-neutral-200 px-1">Explore Popular Categories</h3>
       <div className="grid grid-cols-2 gap-3.5">
         {CATEGORIES.map((cat) => (
           <button

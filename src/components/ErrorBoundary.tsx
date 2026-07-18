@@ -79,35 +79,35 @@ export class ErrorBoundary extends React.Component<Props, State> {
   public override render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-6 text-center antialiased select-none font-sans">
-          <div className="max-w-md w-full bg-white rounded-3xl p-6 border border-neutral-100 shadow-xl shadow-neutral-100/40 space-y-6">
+        <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex flex-col items-center justify-center p-6 text-center antialiased select-none font-sans transition-colors duration-300">
+          <div className="max-w-md w-full bg-white dark:bg-neutral-900 rounded-3xl p-6 border border-neutral-100 dark:border-neutral-800 shadow-xl shadow-neutral-100/40 dark:shadow-none space-y-6">
             
             <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center text-[#FF3B30]">
+              <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center text-[#FF3B30]">
                 <ShieldAlert className="w-8 h-8" />
               </div>
             </div>
 
             <div className="space-y-2">
-              <h1 className="text-lg font-black text-neutral-900 tracking-tight">
+              <h1 className="text-lg font-black text-neutral-900 dark:text-neutral-100 tracking-tight">
                 App Encountered an Issue
               </h1>
-              <p className="text-xs text-neutral-500 leading-relaxed max-w-xs mx-auto">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-xs mx-auto">
                 An unexpected error occurred during rendering. This is often due to an outdated browser cache.
               </p>
             </div>
 
             {this.state.error && (
-              <div className="bg-neutral-50 rounded-2xl p-4 text-left border border-neutral-100 space-y-2 max-h-40 overflow-y-auto">
+              <div className="bg-neutral-50 dark:bg-neutral-950 rounded-2xl p-4 text-left border border-neutral-100 dark:border-neutral-800 space-y-2 max-h-40 overflow-y-auto">
                 <div className="flex items-center space-x-1.5 text-[#FF3B30]">
                   <AlertCircle className="w-3.5 h-3.5" />
                   <span className="text-[10px] font-bold tracking-wider uppercase">Error details</span>
                 </div>
-                <p className="text-[11px] font-mono font-medium text-neutral-700 break-words">
+                <p className="text-[11px] font-mono font-medium text-neutral-700 dark:text-neutral-300 break-words">
                   {this.state.error.toString()}
                 </p>
                 {this.state.errorInfo?.componentStack && (
-                  <pre className="text-[9px] font-mono text-neutral-400 overflow-x-auto whitespace-pre-wrap leading-tight pt-1 border-t border-neutral-100">
+                  <pre className="text-[9px] font-mono text-neutral-400 dark:text-neutral-500 overflow-x-auto whitespace-pre-wrap leading-tight pt-1 border-t border-neutral-100 dark:border-t-neutral-800">
                     {this.state.errorInfo.componentStack}
                   </pre>
                 )}
@@ -127,7 +127,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               <button
                 id="err-btn-clear"
                 onClick={this.handleClearAllData}
-                className="w-full py-3 bg-neutral-100 text-neutral-600 hover:text-[#FF3B30] hover:bg-red-50 text-xs font-bold rounded-xl active:scale-95 transition-all flex items-center justify-center space-x-2"
+                className="w-full py-3 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-[#FF3B30] dark:hover:text-[#FF3B30] hover:bg-red-50 dark:hover:bg-red-950/20 text-xs font-bold rounded-xl active:scale-95 transition-all flex items-center justify-center space-x-2"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Clear All Cache & Reset</span>
@@ -136,7 +136,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
           </div>
           
-          <p className="text-[10px] text-neutral-400 mt-6 font-medium">
+          <p className="text-[10px] text-neutral-400 dark:text-neutral-500 mt-6 font-medium">
             Minimalist Podcast • Ives' Custom Client
           </p>
         </div>

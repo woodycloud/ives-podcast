@@ -99,8 +99,8 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
   if (loading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center py-20 space-y-4">
-        <div className="w-8 h-8 rounded-full border-2 border-neutral-200 border-t-neutral-800 animate-spin" />
-        <p className="text-xs font-medium text-neutral-400">Parsing podcast feed & loading episodes...</p>
+        <div className="w-8 h-8 rounded-full border-2 border-neutral-200 dark:border-neutral-800 border-t-neutral-800 dark:border-t-neutral-100 animate-spin" />
+        <p className="text-xs font-medium text-neutral-400 dark:text-neutral-500">Parsing podcast feed & loading episodes...</p>
       </div>
     );
   }
@@ -111,7 +111,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
         <p className="text-sm font-semibold text-[#FF3B30]">{error || "Failed to load"}</p>
         <button
           onClick={onBack}
-          className="text-xs font-semibold px-4 py-2 bg-neutral-900 text-white rounded-full hover:bg-neutral-800 transition-all active:scale-95"
+          className="text-xs font-semibold px-4 py-2 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-950 rounded-full hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all active:scale-95"
         >
           Back to Library
         </button>
@@ -188,23 +188,23 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
       <button
         id="detail-back-button"
         onClick={onBack}
-        className="flex items-center text-neutral-500 hover:text-neutral-900 text-sm font-semibold transition-colors py-2 group select-none"
+        className="flex items-center text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 text-sm font-semibold transition-colors py-2 group select-none"
       >
         <ArrowLeft className="w-4 h-4 mr-1.5 group-hover:-translate-x-0.5 transition-transform" />
         Back
       </button>
 
       {/* Hero Header */}
-      <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 pb-6 border-b border-neutral-100">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 pb-6 border-b border-neutral-100 dark:border-neutral-800">
         <img
           src={podcast.artwork}
           alt={podcast.title}
-          className="w-36 h-36 md:w-40 md:h-40 rounded-2xl object-cover shadow-md bg-neutral-100 border border-neutral-100"
+          className="w-36 h-36 md:w-40 md:h-40 rounded-2xl object-cover shadow-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-800"
           referrerPolicy="no-referrer"
         />
         <div className="flex-1 space-y-3 pt-1">
           <div className="space-y-1">
-            <h2 className="text-xl md:text-2xl font-black text-neutral-900 leading-tight tracking-tight">
+            <h2 className="text-xl md:text-2xl font-black text-neutral-900 dark:text-neutral-100 leading-tight tracking-tight">
               {podcast.title}
             </h2>
             <p className="text-xs font-semibold text-[#007AFF] tracking-wide">
@@ -213,7 +213,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
           </div>
 
           {podcast.category && (
-            <span className="inline-block text-[10px] font-bold tracking-wider uppercase text-neutral-400 bg-neutral-100 px-2.5 py-1 rounded-md">
+            <span className="inline-block text-[10px] font-bold tracking-wider uppercase text-neutral-400 dark:text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-2.5 py-1 rounded-md">
               {podcast.category}
             </span>
           )}
@@ -225,8 +225,8 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
               onClick={handleSubscribeToggle}
               className={`text-xs font-bold px-5 py-2.5 rounded-full transition-all active:scale-95 flex items-center ${
                 isSub 
-                  ? "bg-neutral-100 text-neutral-600 hover:bg-neutral-200" 
-                  : "bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm shadow-neutral-900/10"
+                  ? "bg-neutral-100 dark:bg-neutral-850 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800" 
+                  : "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-950 hover:bg-neutral-800 dark:hover:bg-neutral-200 shadow-sm shadow-neutral-900/10 dark:shadow-none"
               }`}
             >
               {isSub ? (
@@ -256,14 +256,14 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
 
       {/* Podcast Description */}
       <div className="space-y-2">
-        <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase">About</h3>
-        <div className="bg-white rounded-2xl p-4 border border-neutral-100 text-left">
-          <p className={`text-xs text-neutral-600 leading-relaxed ${!expandedDesc && "line-clamp-3"}`}>
+        <h3 className="text-xs font-bold text-neutral-400 dark:text-neutral-500 tracking-wider uppercase">About</h3>
+        <div className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-neutral-100 dark:border-neutral-800 text-left">
+          <p className={`text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed ${!expandedDesc && "line-clamp-3"}`}>
             {stripHtml(podcast.description)}
           </p>
           <button
             onClick={() => setExpandedDesc(!expandedDesc)}
-            className="text-[11px] font-bold text-neutral-400 mt-2 hover:text-neutral-900 transition-colors flex items-center select-none"
+            className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 mt-2 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors flex items-center select-none"
           >
             {expandedDesc ? (
               <>
@@ -283,7 +283,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
       {/* Episode List */}
       <div className="space-y-4 text-left">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase">
+          <h3 className="text-xs font-bold text-neutral-400 dark:text-neutral-500 tracking-wider uppercase">
             All Episodes ({podcast.episodes.length})
           </h3>
           {podcast.link && (
@@ -291,14 +291,14 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
               href={podcast.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] font-bold text-neutral-400 hover:text-neutral-900 flex items-center transition-colors"
+              className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 flex items-center transition-colors"
             >
               Visit Homepage <ExternalLink className="w-2.5 h-2.5 ml-1" />
             </a>
           )}
         </div>
 
-        <div className="divide-y divide-neutral-100 bg-white rounded-2xl border border-neutral-100 overflow-hidden shadow-sm">
+        <div className="divide-y divide-neutral-100 dark:divide-neutral-800 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-100 dark:border-neutral-800 overflow-hidden shadow-sm">
           {podcast.episodes.map((ep) => {
             const isPlayingThis = currentEpisode?.guid === ep.guid;
             const isDownloadedThis = isDownloaded(ep.guid);
@@ -308,10 +308,10 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
             return (
               <div 
                 key={ep.guid} 
-                className="p-4 flex gap-4 hover:bg-neutral-50/50 transition-colors group"
+                className="p-4 flex gap-4 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/50 transition-colors group"
               >
                 {/* Visual listen indicator or artwork thumbnail */}
-                <div className="relative flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-neutral-100 shadow-sm bg-neutral-100 hidden sm:block">
+                <div className="relative flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-850 shadow-sm bg-neutral-100 dark:bg-neutral-800 hidden sm:block">
                   <img
                     src={ep.artwork || podcast.artwork}
                     alt={ep.title}
@@ -319,7 +319,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
                     referrerPolicy="no-referrer"
                   />
                   {isPlayingThis && isPlaying && (
-                    <div className="absolute inset-0 bg-neutral-900/20 backdrop-blur-[1px] flex items-center justify-center text-white">
+                    <div className="absolute inset-0 bg-neutral-900/30 backdrop-blur-[1px] flex items-center justify-center text-white">
                       <Play className="w-4 h-4 animate-ping fill-white stroke-none" />
                     </div>
                   )}
@@ -327,7 +327,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
 
                 {/* Info and text */}
                 <div className="flex-1 min-w-0 space-y-1">
-                  <div className="flex items-center space-x-2 text-[10px] font-bold text-neutral-400 tracking-wide font-sans">
+                  <div className="flex items-center space-x-2 text-[10px] font-bold text-neutral-400 dark:text-neutral-500 tracking-wide font-sans">
                     <span>{formatDate(ep.pubDate)}</span>
                     {ep.duration > 0 && (
                       <>
@@ -337,24 +337,24 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
                     )}
                   </div>
 
-                  <h4 className="text-xs font-bold text-neutral-800 line-clamp-1 group-hover:text-neutral-900 transition-colors">
+                  <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-200 line-clamp-1 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
                     {ep.title}
                   </h4>
 
-                  <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 line-clamp-2 leading-relaxed">
                     {stripHtml(ep.description || ep.showNotes)}
                   </p>
 
                   {/* Playback Progress Indicator if partially listened */}
                   {listenedProgress && ep.duration > 0 && (
                     <div className="pt-2 w-28">
-                      <div className="h-[2px] w-full bg-neutral-100 rounded-full overflow-hidden">
+                      <div className="h-[2px] w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-[#007AFF] rounded-full"
                           style={{ width: `${(listenedProgress / ep.duration) * 100}%` }}
                         />
                       </div>
-                      <span className="text-[9px] font-semibold text-neutral-400 mt-0.5 inline-block">
+                      <span className="text-[9px] font-semibold text-neutral-400 dark:text-neutral-500 mt-0.5 inline-block">
                         Listened {Math.round((listenedProgress / ep.duration) * 100)}%
                       </span>
                     </div>
@@ -375,7 +375,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
                     className={`w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 ${
                       isPlayingThis && isPlaying
                         ? "bg-[#007AFF] text-white shadow-sm shadow-[#007AFF]/10"
-                        : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
+                        : "bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-700"
                     }`}
                   >
                     {isPlayingThis && isPlaying ? (
@@ -391,19 +391,19 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
                       /* Downloading spinner */
                       <div className="relative w-6 h-6 flex items-center justify-center">
                         <svg className="w-6 h-6 transform -rotate-90">
-                          <circle cx="12" cy="12" r="9" stroke="#e4e4e7" strokeWidth="2" fill="transparent" />
+                          <circle cx="12" cy="12" r="9" className="stroke-neutral-200 dark:stroke-neutral-800" strokeWidth="2" fill="transparent" />
                           <circle cx="12" cy="12" r="9" stroke="#007AFF" strokeWidth="2" fill="transparent" 
                             strokeDasharray={2 * Math.PI * 9}
                             strokeDashoffset={2 * Math.PI * 9 * (1 - dlProgress / 100)}
                           />
                         </svg>
-                        <span className="absolute text-[6px] font-bold text-neutral-600">{dlProgress}%</span>
+                        <span className="absolute text-[6px] font-bold text-neutral-600 dark:text-neutral-300">{dlProgress}%</span>
                       </div>
                     ) : isDownloadedThis ? (
                       /* Delete Download */
                       <button
                         onClick={() => removeDownload(ep.guid)}
-                        className="w-6 h-6 rounded-full flex items-center justify-center text-[#FF3B30] hover:text-[#FF3B30]/90 hover:bg-[#FF3B30]/10 transition-colors"
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-[#FF3B30] hover:text-[#FF3B30]/90 hover:bg-[#FF3B30]/10 dark:hover:bg-[#FF3B30]/20 transition-colors"
                         title="Delete download"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -412,7 +412,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
                       /* Download */
                       <button
                         onClick={() => downloadEpisode(ep, podcast.title)}
-                        className="w-6 h-6 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                         title="Download"
                       >
                         <Download className="w-3.5 h-3.5" />
@@ -445,11 +445,11 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 350 }}
-              className="relative w-full max-w-sm bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-neutral-100/50 p-5 text-center flex flex-col space-y-4 mb-[env(safe-area-inset-bottom)] sm:mb-0 z-10"
+              className="relative w-full max-w-sm bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-neutral-100/50 dark:border-neutral-800/50 p-5 text-center flex flex-col space-y-4 mb-[env(safe-area-inset-bottom)] sm:mb-0 z-10"
             >
               <div className="space-y-1">
-                <h3 className="text-sm font-bold text-neutral-800">Unsubscribe Podcast</h3>
-                <p className="text-[11px] text-neutral-500 leading-relaxed px-2">
+                <h3 className="text-sm font-bold text-neutral-800 dark:text-neutral-100">Unsubscribe Podcast</h3>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed px-2">
                   Are you sure you want to unsubscribe from "{podcast.title}"?
                 </p>
               </div>
@@ -466,7 +466,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
                 </button>
                 <button
                   onClick={() => setShowConfirmUnsub(false)}
-                  className="w-full py-2.5 bg-neutral-100 text-neutral-600 text-xs font-bold rounded-xl active:scale-95 transition-all"
+                  className="w-full py-2.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 text-xs font-bold rounded-xl active:scale-95 transition-all"
                 >
                   Keep Subscription
                 </button>

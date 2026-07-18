@@ -102,12 +102,12 @@ export const BottomPlayer: React.FC = () => {
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             onClick={() => setIsExpanded(true)}
-            className="fixed bottom-[calc(72px_+_env(safe-area-inset-bottom))] left-4 right-4 h-16 bg-white/90 backdrop-blur-xl border border-neutral-100 rounded-2xl shadow-lg shadow-neutral-100/40 px-3 flex items-center justify-between cursor-pointer z-40 select-none transition-all duration-300"
+            className="fixed bottom-[calc(72px_+_env(safe-area-inset-bottom))] left-4 right-4 h-16 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-100 dark:border-neutral-800 rounded-2xl shadow-lg shadow-neutral-100/40 dark:shadow-none px-3 flex items-center justify-between cursor-pointer z-40 select-none transition-all duration-300"
           >
             {/* Visual audio progress bar along the very bottom of min player */}
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-neutral-100 rounded-b-2xl overflow-hidden">
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-neutral-100 dark:bg-neutral-800 rounded-b-2xl overflow-hidden">
               <div 
-                className="h-full bg-neutral-900 transition-all duration-100 ease-out"
+                className="h-full bg-neutral-900 dark:bg-neutral-100 transition-all duration-100 ease-out"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -116,17 +116,17 @@ export const BottomPlayer: React.FC = () => {
               <img
                 src={currentEpisode.artwork}
                 alt={currentEpisode.title}
-                className="w-10 h-10 rounded-lg object-cover shadow-sm bg-neutral-100"
+                className="w-10 h-10 rounded-lg object-cover shadow-sm bg-neutral-100 dark:bg-neutral-800"
                 referrerPolicy="no-referrer"
               />
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-neutral-800 truncate">
+                <p className="text-xs font-semibold text-neutral-800 dark:text-neutral-100 truncate">
                   {currentEpisode.title}
                 </p>
-                <p className="text-[10px] text-neutral-500 truncate flex items-center">
+                <p className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate flex items-center">
                   <span>{currentEpisode.podcastTitle || "Unknown Podcast"}</span>
                   {isEpDl && (
-                    <span className="ml-1.5 px-1 py-0.2 bg-neutral-100 text-neutral-600 rounded-[3px] scale-90 origin-left">
+                    <span className="ml-1.5 px-1 py-0.2 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 rounded-[3px] scale-90 origin-left">
                       Downloaded
                     </span>
                   )}
@@ -142,12 +142,12 @@ export const BottomPlayer: React.FC = () => {
                   e.stopPropagation();
                   togglePlay();
                 }}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-50 active:scale-95 transition-all text-neutral-900"
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-50 dark:bg-neutral-800 active:scale-95 transition-all text-neutral-900 dark:text-neutral-100"
               >
                 {isPlaying ? (
-                  <Pause className="w-4 h-4 fill-neutral-900 stroke-none" />
+                  <Pause className="w-4 h-4 fill-neutral-900 dark:fill-neutral-100 stroke-none" />
                 ) : (
-                  <Play className="w-4 h-4 fill-neutral-900 stroke-none translate-x-0.5" />
+                  <Play className="w-4 h-4 fill-neutral-900 dark:fill-neutral-100 stroke-none translate-x-0.5" />
                 )}
               </button>
               
@@ -158,7 +158,7 @@ export const BottomPlayer: React.FC = () => {
                   e.stopPropagation();
                   skipForward();
                 }}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-50 active:scale-95 transition-all text-neutral-600"
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-50 dark:bg-neutral-800 active:scale-95 transition-all text-neutral-600 dark:text-neutral-300"
               >
                 <RotateCw className="w-4 h-4" />
               </button>
@@ -176,24 +176,24 @@ export const BottomPlayer: React.FC = () => {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 220 }}
-            className="fixed inset-0 bg-white z-50 flex flex-col focus:outline-none"
+            className="fixed inset-0 bg-white dark:bg-neutral-950 z-50 flex flex-col focus:outline-none transition-colors duration-300"
           >
             {/* Header: drag down handler */}
-            <div className="flex items-center justify-between px-6 pt-[calc(1.5rem_+_env(safe-area-inset-top))] pb-2 border-b border-neutral-50">
+            <div className="flex items-center justify-between px-6 pt-[calc(1.5rem_+_env(safe-area-inset-top))] pb-2 border-b border-neutral-50 dark:border-neutral-900">
               <button
                 id="player-dismiss"
                 onClick={() => setIsExpanded(false)}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-50 text-neutral-600 hover:text-neutral-900 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
               >
                 <ChevronDown className="w-5 h-5" />
               </button>
-              <span className="text-xs font-semibold tracking-wider text-neutral-400 uppercase">
+              <span className="text-xs font-semibold tracking-wider text-neutral-400 dark:text-neutral-500 uppercase">
                 Now Playing
               </span>
               <button
                 id="player-share"
                 onClick={handleShare}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-50 text-neutral-600 hover:text-neutral-900 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
               >
                 <Share2 className="w-4 h-4" />
               </button>
@@ -213,7 +213,7 @@ export const BottomPlayer: React.FC = () => {
                     className="flex-1 flex flex-col items-center justify-center space-y-8 py-4"
                   >
                     {/* Big Artwork */}
-                    <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-2xl overflow-hidden shadow-2xl shadow-neutral-300">
+                    <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-2xl overflow-hidden shadow-2xl shadow-neutral-300 dark:shadow-none">
                       <img
                         src={currentEpisode.artwork}
                         alt={currentEpisode.title}
@@ -229,7 +229,7 @@ export const BottomPlayer: React.FC = () => {
 
                     {/* Metadata */}
                     <div className="text-center w-full px-4">
-                      <h2 className="text-lg md:text-xl font-bold text-neutral-900 line-clamp-2 leading-snug tracking-tight">
+                      <h2 className="text-lg md:text-xl font-bold text-neutral-900 dark:text-neutral-100 line-clamp-2 leading-snug tracking-tight">
                         {currentEpisode.title}
                       </h2>
                       <p className="text-sm font-medium text-[#007AFF] mt-2 truncate">
@@ -244,18 +244,18 @@ export const BottomPlayer: React.FC = () => {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 15 }}
-                    className="flex-1 overflow-y-auto bg-neutral-50 rounded-2xl p-5 my-4 border border-neutral-100 text-left"
+                    className="flex-1 overflow-y-auto bg-neutral-50 dark:bg-neutral-900 rounded-2xl p-5 my-4 border border-neutral-100 dark:border-neutral-850 text-left"
                   >
-                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-neutral-200">
-                      <h3 className="font-bold text-neutral-800 text-sm flex items-center">
+                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-neutral-200 dark:border-neutral-800">
+                      <h3 className="font-bold text-neutral-800 dark:text-neutral-200 text-sm flex items-center">
                         <FileText className="w-4 h-4 mr-1.5 text-neutral-500" />
                         Episode Details / Show Notes
                       </h3>
-                      <span className="text-[10px] text-neutral-400">EPISODE NOTES</span>
+                      <span className="text-[10px] text-neutral-400 dark:text-neutral-500">EPISODE NOTES</span>
                     </div>
                     {currentEpisode.showNotes ? (
                       <div 
-                        className="text-xs text-neutral-600 leading-relaxed space-y-3 prose prose-sm max-w-none break-words"
+                        className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed space-y-3 prose prose-sm dark:prose-invert max-w-none break-words"
                         dangerouslySetInnerHTML={{ 
                           __html: typeof currentEpisode.showNotes === "string" 
                             ? currentEpisode.showNotes 
@@ -265,14 +265,14 @@ export const BottomPlayer: React.FC = () => {
                         }}
                       />
                     ) : (
-                      <p className="text-xs text-neutral-400 italic">No notes available for this episode.</p>
+                      <p className="text-xs text-neutral-400 dark:text-neutral-500 italic">No notes available for this episode.</p>
                     )}
                   </motion.div>
                 )}
               </AnimatePresence>
 
               {/* Player Controls Panel */}
-              <div className="space-y-6 pt-4 border-t border-neutral-50">
+              <div className="space-y-6 pt-4 border-t border-neutral-50 dark:border-neutral-900">
                 {/* Scrubbing Bar */}
                 <div className="space-y-1">
                   <input
@@ -301,9 +301,9 @@ export const BottomPlayer: React.FC = () => {
                         setIsScrubbing(false);
                       }
                     }}
-                    className="w-full h-[5px] bg-neutral-100 rounded-lg appearance-none cursor-pointer accent-neutral-900 outline-none hover:accent-[#007AFF] transition-all"
+                    className="w-full h-[5px] bg-neutral-100 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-neutral-900 dark:accent-neutral-100 outline-none hover:accent-[#007AFF] transition-all"
                   />
-                  <div className="flex justify-between text-[11px] font-medium text-neutral-400 px-1 font-mono">
+                  <div className="flex justify-between text-[11px] font-medium text-neutral-400 dark:text-neutral-500 px-1 font-mono">
                     <span>{formatTime(isScrubbing ? scrubValue : currentTime)}</span>
                     <span>-{formatTime(duration - (isScrubbing ? scrubValue : currentTime))}</span>
                   </div>
@@ -316,22 +316,22 @@ export const BottomPlayer: React.FC = () => {
                     {dlProgress !== undefined ? (
                       <div className="relative w-9 h-9 flex items-center justify-center">
                         <svg className="w-8 h-8 transform -rotate-90">
-                          <circle cx="16" cy="16" r="14" stroke="#f4f4f5" strokeWidth="2.5" fill="transparent" />
+                          <circle cx="16" cy="16" r="14" className="stroke-neutral-100 dark:stroke-neutral-800" strokeWidth="2.5" fill="transparent" />
                           <circle cx="16" cy="16" r="14" stroke="#007AFF" strokeWidth="2.5" fill="transparent" 
                             strokeDasharray={2 * Math.PI * 14}
                             strokeDashoffset={2 * Math.PI * 14 * (1 - dlProgress / 100)}
                           />
                         </svg>
-                        <span className="absolute text-[8px] font-bold text-neutral-700">{dlProgress}%</span>
+                        <span className="absolute text-[8px] font-bold text-neutral-700 dark:text-neutral-300">{dlProgress}%</span>
                       </div>
                     ) : isEpDl ? (
-                      <div className="w-9 h-9 rounded-full bg-neutral-50 border border-neutral-100 flex items-center justify-center text-[#007AFF]">
+                      <div className="w-9 h-9 rounded-full bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 flex items-center justify-center text-[#007AFF]">
                         <Check className="w-4 h-4" />
                       </div>
                     ) : (
                       <button
                         onClick={() => downloadEpisode(currentEpisode, currentEpisode.podcastTitle || "")}
-                        className="w-9 h-9 rounded-full bg-neutral-50 hover:bg-neutral-100 flex items-center justify-center text-neutral-600 active:scale-95 transition-all"
+                        className="w-9 h-9 rounded-full bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 active:scale-95 transition-all"
                         title="Download episode"
                       >
                         <Download className="w-4 h-4" />
@@ -344,7 +344,7 @@ export const BottomPlayer: React.FC = () => {
                     {/* Skip Back 15s */}
                     <button
                       onClick={skipBackward}
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 active:scale-90 transition-all"
+                      className="w-12 h-12 rounded-full flex items-center justify-center text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 active:scale-90 transition-all"
                     >
                       <RotateCcw className="w-5 h-5" />
                     </button>
@@ -352,19 +352,19 @@ export const BottomPlayer: React.FC = () => {
                     {/* Central Play/Pause button */}
                     <button
                       onClick={togglePlay}
-                      className="w-18 h-18 rounded-full flex items-center justify-center bg-neutral-950 hover:bg-neutral-900 text-white shadow-xl shadow-neutral-950/20 active:scale-95 transition-all"
+                      className="w-18 h-18 rounded-full flex items-center justify-center bg-neutral-950 dark:bg-neutral-100 hover:bg-neutral-900 dark:hover:bg-neutral-200 text-white dark:text-neutral-950 shadow-xl shadow-neutral-950/20 dark:shadow-none active:scale-95 transition-all"
                     >
                       {isPlaying ? (
-                        <Pause className="w-6 h-6 fill-white stroke-none" />
+                        <Pause className="w-6 h-6 fill-white dark:fill-neutral-950 stroke-none" />
                       ) : (
-                        <Play className="w-6 h-6 fill-white stroke-none translate-x-0.5" />
+                        <Play className="w-6 h-6 fill-white dark:fill-neutral-950 stroke-none translate-x-0.5" />
                       )}
                     </button>
 
                     {/* Skip Forward 15s */}
                     <button
                       onClick={skipForward}
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 active:scale-90 transition-all"
+                      className="w-12 h-12 rounded-full flex items-center justify-center text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 active:scale-90 transition-all"
                     >
                       <RotateCw className="w-5 h-5" />
                     </button>
@@ -374,7 +374,7 @@ export const BottomPlayer: React.FC = () => {
                   <div className="w-12 flex justify-end">
                     <button
                       onClick={nextRate}
-                      className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-neutral-50 border border-neutral-100 hover:bg-neutral-100 text-neutral-700 active:scale-95 transition-all font-mono"
+                      className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 active:scale-95 transition-all font-mono"
                     >
                       {playbackRate}x
                     </button>
@@ -387,8 +387,8 @@ export const BottomPlayer: React.FC = () => {
                     onClick={() => setShowNotes(false)}
                     className={`text-xs font-semibold px-4 py-2 rounded-full transition-all flex items-center space-x-1.5 ${
                       !showNotes 
-                        ? "bg-neutral-900 text-white shadow-sm" 
-                        : "bg-neutral-50 text-neutral-500 hover:text-neutral-800"
+                        ? "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-950 shadow-sm" 
+                        : "bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
                     }`}
                   >
                     <Activity className="w-3.5 h-3.5" />
@@ -398,8 +398,8 @@ export const BottomPlayer: React.FC = () => {
                     onClick={() => setShowNotes(true)}
                     className={`text-xs font-semibold px-4 py-2 rounded-full transition-all flex items-center space-x-1.5 ${
                       showNotes 
-                        ? "bg-neutral-900 text-white shadow-sm" 
-                        : "bg-neutral-50 text-neutral-500 hover:text-neutral-800"
+                        ? "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-950 shadow-sm" 
+                        : "bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
                     }`}
                   >
                     <FileText className="w-3.5 h-3.5" />
