@@ -49,7 +49,8 @@ const AppContent: React.FC = () => {
     isPlaying,
     togglePlay,
     playbackProgress,
-    removeDownload
+    removeDownload,
+    clearAllDownloads
   } = usePodcast();
 
   const [activeTab, setActiveTab] = useState<"listen_now" | "library" | "search" | "sync">("listen_now");
@@ -98,6 +99,9 @@ const AppContent: React.FC = () => {
 
   // Latest episodes from subscribed podcasts
   const [subscribedEpisodes, setSubscribedEpisodes] = useState<any[]>([]);
+
+  // Clear library cache confirmation state
+  const [confirmClearLibrary, setConfirmClearLibrary] = useState<boolean>(false);
   const [loadingSubEpisodes, setLoadingSubEpisodes] = useState<boolean>(false);
 
   // Local downloads metadata
@@ -655,10 +659,32 @@ const AppContent: React.FC = () => {
 
                   {/* Offline downloads */}
                   <div className="space-y-3.5">
-                    <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left flex items-center">
-                      <FolderDown className="w-4 h-4 mr-1.5 text-neutral-500" />
-                      Downloaded Episodes ({downloads.length})
-                    </h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left flex items-center select-none">
+                        <FolderDown className="w-4 h-4 mr-1.5 text-neutral-500" />
+                        Downloaded Episodes ({downloads.length})
+                      </h3>
+                      {downloads.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirmClearLibrary) {
+                              clearAllDownloads().then(() => setConfirmClearLibrary(false));
+                            } else {
+                              setConfirmClearLibrary(true);
+                              setTimeout(() => setConfirmClearLibrary(false), 3000);
+                            }
+                          }}
+                          className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-all active:scale-95 select-none cursor-pointer ${
+                            confirmClearLibrary
+                              ? "bg-[#FF3B30] text-white shadow-sm shadow-red-500/15"
+                              : "text-neutral-400 dark:text-neutral-500 hover:text-[#FF3B30] dark:hover:text-[#FF3B30] bg-neutral-100 hover:bg-neutral-200/60 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+                          }`}
+                        >
+                          {confirmClearLibrary ? "Are you sure?" : "一键清理 (Clear All)"}
+                        </button>
+                      )}
+                    </div>
 
                     {downloads.length === 0 ? (
                       <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-neutral-100 dark:border-neutral-800 text-center text-xs text-neutral-400 dark:text-neutral-500 leading-normal">

@@ -213,6 +213,39 @@ export async function getAllDownloads(): Promise<DownloadedEpisode[]> {
   });
 }
 
+export async function clearAllDownloads(): Promise<void> {
+  const db = await openDB();
+  if (!db || useFallback) {
+    fallbackStore.downloads = {};
+    saveFallbackToLocalStorage();
+    return;
+  }
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = db.transaction("downloads", "readwrite");
+      const store = transaction.objectStore("downloads");
+      const request = store.clear();
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    } catch (e) {
+      fallbackStore.downloads = {};
+      saveFallbackToLocalStorage();
+      resolve();
+    }
+  });
+}
+
+export async function getDownloadsSize(): Promise<number> {
+  const all = await getAllDownloads();
+  let totalBytes = 0;
+  for (const item of all) {
+    if (item.blob) {
+      totalBytes += item.blob.size;
+    }
+  }
+  return totalBytes;
+}
+
 // Subscriptions Operations
 export async function saveSubscription(sub: Subscription): Promise<void> {
   const db = await openDB();

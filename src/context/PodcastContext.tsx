@@ -46,6 +46,7 @@ interface PodcastContextType {
   downloadEpisode: (episode: Episode, podcastTitle: string) => Promise<void>;
   removeDownload: (guid: string) => Promise<void>;
   isDownloaded: (guid: string) => boolean;
+  clearAllDownloads: () => Promise<void>;
 
   // Playback Progress
   playbackProgress: Record<string, number>; // guid -> last played time (seconds)
@@ -185,7 +186,17 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const ep = currentEpisodeRef.current;
       if (ep) {
         db.saveProgress(ep.guid, ep.title, audio.currentTime, audio.duration || ep.duration, true)
-          .then(() => refreshProgressList());
+          .then(() => {
+            refreshProgressList();
+            // Check if automatic cache cleanup is enabled
+            const autoDelete = localStorage.getItem("auto_delete_completed") === "true";
+            if (autoDelete) {
+              db.deleteDownload(ep.guid).then(() => {
+                setDownloads(prev => prev.filter(g => g !== ep.guid));
+                console.log(`Auto-deleted completed offline download for: ${ep.title}`);
+              });
+            }
+          });
       }
       playNext();
     };
@@ -435,6 +446,11 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return downloads.includes(guid);
   };
 
+  const clearAllDownloads = async () => {
+    await db.clearAllDownloads();
+    setDownloads([]);
+  };
+
   // Playback Progress Actions
   const saveProgressState = (guid: string, time: number, duration: number) => {
     db.saveProgress(guid, currentEpisode?.title || "未知单集", time, duration, false);
@@ -606,6 +622,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
         downloadEpisode,
         removeDownload,
         isDownloaded,
+        clearAllDownloads,
 
         playbackProgress,
         saveProgressState,

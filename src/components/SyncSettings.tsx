@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { usePodcast } from "../context/PodcastContext";
-import { Copy, RefreshCw, Key, Check, HelpCircle } from "lucide-react";
+import { Copy, RefreshCw, Key, Check, HelpCircle, HardDrive, Trash2, ShieldCheck } from "lucide-react";
+import * as db from "../utils/db";
 
 export const SyncSettings: React.FC = () => {
   const {
@@ -9,13 +10,51 @@ export const SyncSettings: React.FC = () => {
     isOnline,
     syncStatus,
     triggerSync,
-    subscriptions
+    subscriptions,
+    downloads,
+    clearAllDownloads
   } = usePodcast();
 
   const [inputCode, setInputCode] = useState<string>("");
   const [copied, setCopied] = useState<boolean>(false);
   const [updating, setUpdating] = useState<boolean>(false);
   const [statusMsg, setStatusMsg] = useState<string>("");
+
+  const [cacheSize, setCacheSize] = useState<string>("Calculating...");
+  const [autoDelete, setAutoDelete] = useState<boolean>(() => {
+    return localStorage.getItem("auto_delete_completed") === "true";
+  });
+  const [isConfirmingClear, setIsConfirmingClear] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchSize = async () => {
+      try {
+        const bytes = await db.getDownloadsSize();
+        const mb = (bytes / (1024 * 1024)).toFixed(1);
+        setCacheSize(`${mb} MB`);
+      } catch (e) {
+        setCacheSize("0.0 MB");
+      }
+    };
+    fetchSize();
+  }, [downloads]);
+
+  const handleClearCache = async () => {
+    try {
+      await clearAllDownloads();
+      setCacheSize("0.0 MB");
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsConfirmingClear(false);
+    }
+  };
+
+  const handleToggleAutoDelete = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.checked;
+    setAutoDelete(val);
+    localStorage.setItem("auto_delete_completed", val ? "true" : "false");
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(userId);
@@ -128,6 +167,84 @@ export const SyncSettings: React.FC = () => {
             {statusMsg}
           </p>
         )}
+      </div>
+
+      {/* 自动离线空间管理 */}
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-neutral-100 dark:border-neutral-800 shadow-sm space-y-4 animate-fadeIn">
+        <h3 className="font-bold text-sm text-neutral-800 dark:text-neutral-100 flex items-center">
+          <HardDrive className="w-4 h-4 mr-1.5 text-[#007AFF]" />
+          Automatic Cache Management (自动离线空间管理)
+        </h3>
+        
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed text-left">
+          Manage local storage used by downloaded offline episodes. Clear cache or configure automatic cleanup rules to save disk space.
+        </p>
+
+        {/* Storage Stats */}
+        <div className="flex items-center justify-between bg-neutral-50 dark:bg-neutral-950 rounded-xl p-3.5 border border-neutral-100 dark:border-neutral-800">
+          <div className="space-y-0.5 text-left">
+            <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">Storage Used</span>
+            <div className="text-base font-black text-neutral-800 dark:text-neutral-100">{cacheSize}</div>
+          </div>
+          
+          {downloads.length > 0 ? (
+            isConfirmingClear ? (
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={handleClearCache}
+                  className="px-3 py-1.5 bg-[#FF3B30] text-white text-[11px] font-bold rounded-lg active:scale-95 transition-all shadow-sm shadow-red-500/10 cursor-pointer"
+                >
+                  Yes, Clear All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsConfirmingClear(false)}
+                  className="px-2.5 py-1.5 bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 text-[11px] font-bold rounded-lg active:scale-95 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsConfirmingClear(true)}
+                className="px-3.5 py-2 bg-neutral-100 hover:bg-red-50 dark:bg-neutral-800 dark:hover:bg-red-950/20 text-neutral-600 dark:text-neutral-300 hover:text-[#FF3B30] dark:hover:text-[#FF3B30] text-[11px] font-bold rounded-xl active:scale-95 transition-all flex items-center space-x-1.5 border border-neutral-200/50 dark:border-neutral-700/50 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>一键清理缓存 (Clear Cache)</span>
+              </button>
+            )
+          ) : (
+            <div className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 flex items-center bg-neutral-100 dark:bg-neutral-900 px-3 py-1.5 rounded-lg select-none">
+              <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-emerald-500" />
+              Cache Clean
+            </div>
+          )}
+        </div>
+
+        {/* Auto Cleanup Rules */}
+        <div className="space-y-3 pt-1">
+          <span className="text-xs font-bold text-neutral-400 dark:text-neutral-500 tracking-wider uppercase">Cache Rules</span>
+          
+          <label className="flex items-center justify-between p-3.5 bg-neutral-50 dark:bg-neutral-950 rounded-xl border border-neutral-100 dark:border-neutral-800 cursor-pointer hover:bg-neutral-100/50 dark:hover:bg-neutral-900/50 transition-colors">
+            <div className="space-y-0.5 text-left pr-4">
+              <span className="text-[11px] font-bold text-neutral-700 dark:text-neutral-300">Auto-Delete Completed Episodes</span>
+              <p className="text-[10px] text-neutral-400 dark:text-neutral-500 leading-normal">
+                Automatically remove downloaded audio files once you finish listening to them.
+              </p>
+            </div>
+            <div className="relative inline-flex items-center cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={autoDelete}
+                onChange={handleToggleAutoDelete}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-neutral-200 dark:bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#007AFF]"></div>
+            </div>
+          </label>
+        </div>
       </div>
 
       {/* Offline capability explanation */}
