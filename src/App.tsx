@@ -32,6 +32,49 @@ interface CuratedShow {
   description: string;
 }
 
+// Helper functions for safe date formatting and parsing to avoid any runtime RangeError exceptions
+const getSafePubDateText = (pubDate: any) => {
+  if (!pubDate) return "";
+  try {
+    const d = new Date(pubDate);
+    if (isNaN(d.getTime())) {
+      return String(pubDate);
+    }
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric"
+    });
+  } catch (e) {
+    return String(pubDate);
+  }
+};
+
+const getSafeHistoryDateText = (playedAt: any) => {
+  if (!playedAt) return "";
+  try {
+    const d = new Date(playedAt);
+    if (isNaN(d.getTime())) {
+      return "";
+    }
+    return d.toLocaleDateString();
+  } catch (e) {
+    return "";
+  }
+};
+
+const getSafeDownloadPubDate = (item: any) => {
+  if (item.pubDate) return item.pubDate;
+  try {
+    const d = new Date(item.downloadedAt || Date.now());
+    if (isNaN(d.getTime())) {
+      return new Date().toLocaleDateString();
+    }
+    return d.toLocaleDateString();
+  } catch (e) {
+    return new Date().toLocaleDateString();
+  }
+};
+
 const AppContent: React.FC = () => {
   const {
     isOnline,
@@ -224,7 +267,7 @@ const AppContent: React.FC = () => {
           audioUrl: item.audioUrl,
           artwork: item.artwork || "", // Use actual saved artwork / Base64 image
           podcastTitle: item.podcastTitle || "Downloaded Episode",
-          pubDate: item.pubDate || new Date(item.downloadedAt || Date.now()).toLocaleDateString(),
+          pubDate: getSafeDownloadPubDate(item),
           description: item.description || "Downloaded Episode",
           showNotes: item.description || "", // Store description as fallback notes so details view isn't blank
           audioType: "audio/mpeg",
@@ -403,10 +446,7 @@ const AppContent: React.FC = () => {
                               const isPlayingNow = isPlayingThis && isPlaying;
                               
                               const durationMin = ep.duration ? `${Math.round(ep.duration / 60)}m` : "";
-                              const pubDateText = ep.pubDate ? new Date(ep.pubDate).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric"
-                              }) : "";
+                              const pubDateText = getSafePubDateText(ep.pubDate);
 
                               return (
                                 <div
@@ -685,7 +725,7 @@ const AppContent: React.FC = () => {
                                   {hist.title}
                                 </h4>
                                 <p className="text-[9px] text-neutral-400 truncate">
-                                  {hist.podcastTitle} • {new Date(hist.playedAt).toLocaleDateString()}
+                                  {hist.podcastTitle} • {getSafeHistoryDateText(hist.playedAt)}
                                 </p>
                               </div>
                             </div>

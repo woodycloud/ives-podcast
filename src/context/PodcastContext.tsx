@@ -515,8 +515,25 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Check if we have progress saved
       const savedProg = await db.getProgress(episode.guid);
       if (savedProg && !savedProg.completed && savedProg.currentTime > 5) {
-        audioRef.current.currentTime = savedProg.currentTime;
-        setCurrentTime(savedProg.currentTime);
+        const targetTime = savedProg.currentTime;
+        try {
+          audioRef.current.currentTime = targetTime;
+          setCurrentTime(targetTime);
+        } catch (seekError) {
+          console.warn("Direct seek failed. Retrying on loadedmetadata event:", seekError);
+          const handleMetadata = () => {
+            try {
+              if (audioRef.current) {
+                audioRef.current.currentTime = targetTime;
+                setCurrentTime(targetTime);
+              }
+            } catch (innerErr) {
+              console.error("Delayed seek failed:", innerErr);
+            }
+            audioRef.current?.removeEventListener("loadedmetadata", handleMetadata);
+          };
+          audioRef.current.addEventListener("loadedmetadata", handleMetadata);
+        }
       }
 
       await audioRef.current.play();
@@ -548,24 +565,36 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const seekTo = (time: number) => {
     if (audioRef.current) {
-      audioRef.current.currentTime = time;
-      setCurrentTime(time);
+      try {
+        audioRef.current.currentTime = time;
+        setCurrentTime(time);
+      } catch (err) {
+        console.warn("Seek failed:", err);
+      }
     }
   };
 
   const skipForward = () => {
     if (audioRef.current) {
-      const newTime = Math.min(audioRef.current.currentTime + 15, audioRef.current.duration || 0);
-      audioRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
+      try {
+        const newTime = Math.min(audioRef.current.currentTime + 15, audioRef.current.duration || 0);
+        audioRef.current.currentTime = newTime;
+        setCurrentTime(newTime);
+      } catch (err) {
+        console.warn("Skip forward failed:", err);
+      }
     }
   };
 
   const skipBackward = () => {
     if (audioRef.current) {
-      const newTime = Math.max(audioRef.current.currentTime - 15, 0);
-      audioRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
+      try {
+        const newTime = Math.max(audioRef.current.currentTime - 15, 0);
+        audioRef.current.currentTime = newTime;
+        setCurrentTime(newTime);
+      } catch (err) {
+        console.warn("Skip backward failed:", err);
+      }
     }
   };
 
