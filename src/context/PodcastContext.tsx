@@ -117,6 +117,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Audio Ref
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const currentEpisodeRef = useRef<Episode | null>(null);
+  const playNextRef = useRef<() => Promise<void>>(async () => {});
   const loadedFeedsRef = useRef<Record<string, { data: any; timestamp: number }>>({});
 
   const getCachedFeed = (url: string) => {
@@ -195,14 +196,19 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
             // Check if automatic cache cleanup is enabled
             const autoDelete = localStorage.getItem("auto_delete_completed") === "true";
             if (autoDelete) {
-              db.deleteDownload(ep.guid).then(() => {
+              return db.deleteDownload(ep.guid).then(() => {
                 setDownloads(prev => prev.filter(g => g !== ep.guid));
                 console.log(`Auto-deleted completed offline download for: ${ep.title}`);
               });
             }
+          })
+          .catch(err => console.error("Error saving progress at end of play:", err))
+          .finally(() => {
+            playNextRef.current();
           });
+      } else {
+        playNextRef.current();
       }
-      playNext();
     };
 
     const onPlay = () => setIsPlaying(true);
@@ -642,13 +648,103 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setQueue(prev => prev.filter(e => e.guid !== guid));
   };
 
-  const playNext = () => {
+  const playNext = async () => {
     if (queue.length > 0) {
       const nextEp = queue[0];
       setQueue(prev => prev.slice(1));
       playEpisode(nextEp);
+      return;
+    }
+
+    // Auto-play next unplayed episode of this podcast
+    const currentEp = currentEpisodeRef.current;
+    if (!currentEp) return;
+
+    try {
+      // 1. Determine the feed URL for this podcast
+      let feedUrl = currentEp.feedUrl;
+      if (!feedUrl) {
+        // Fallback: lookup in subscriptions by title
+        const titleOfPodcast = currentEp.podcastTitle;
+        if (titleOfPodcast) {
+          const subs = await db.getAllSubscriptions();
+          const match = subs.find(s => s.title === titleOfPodcast);
+          if (match) {
+            feedUrl = match.feedUrl;
+          }
+        }
+      }
+
+      if (!feedUrl) {
+        console.log("Could not find feedUrl for current episode, autoplay next skipped.");
+        return;
+      }
+
+      // 2. Fetch the feed episodes (try client-side memory cache first, else API)
+      let feedData = getCachedFeed(feedUrl);
+      if (!feedData) {
+        const response = await fetch(`/api/feed?url=${encodeURIComponent(feedUrl)}`);
+        if (response.ok) {
+          feedData = await response.json();
+          setCachedFeed(feedUrl, feedData);
+        }
+      }
+
+      if (!feedData || !Array.isArray(feedData.episodes) || feedData.episodes.length === 0) {
+        console.log("Could not load episodes for autoplay next.");
+        return;
+      }
+
+      const episodes: Episode[] = feedData.episodes;
+
+      // 3. Find all completed episode GUIDs in IndexedDB
+      const allProgress = await db.getAllProgress();
+      const completedGuids = new Set(
+        allProgress.filter(p => p.completed).map(p => p.guid)
+      );
+
+      // 4. Find current episode index in the feed list
+      const currentIndex = episodes.findIndex(e => e.guid === currentEp.guid);
+      
+      let nextEpisodeToPlay: Episode | null = null;
+
+      if (currentIndex !== -1) {
+        // Check following episodes in list (older ones)
+        for (let i = currentIndex + 1; i < episodes.length; i++) {
+          if (!completedGuids.has(episodes[i].guid) && episodes[i].guid !== currentEp.guid) {
+            nextEpisodeToPlay = episodes[i];
+            break;
+          }
+        }
+        
+        // If not found, check preceding episodes (newer ones)
+        if (!nextEpisodeToPlay) {
+          for (let i = 0; i < currentIndex; i++) {
+            if (!completedGuids.has(episodes[i].guid) && episodes[i].guid !== currentEp.guid) {
+              nextEpisodeToPlay = episodes[i];
+              break;
+            }
+          }
+        }
+      } else {
+        // If current episode is not found in the feed, just find the first unplayed one
+        nextEpisodeToPlay = episodes.find(e => !completedGuids.has(e.guid)) || null;
+      }
+
+      if (nextEpisodeToPlay) {
+        console.log(`Auto-playing next unplayed episode: ${nextEpisodeToPlay.title}`);
+        playEpisode({ ...nextEpisodeToPlay, feedUrl }, feedData.title);
+      } else {
+        console.log("No other unplayed episodes found in this podcast.");
+      }
+    } catch (err) {
+      console.error("Autoplay next episode error:", err);
     }
   };
+
+  useEffect(() => {
+    playNextRef.current = playNext;
+  }, [playNext]);
 
   // History Actions
   const addToHistory = async (episode: Episode, podcastTitle: string) => {

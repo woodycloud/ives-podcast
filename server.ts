@@ -250,6 +250,7 @@ app.get("/api/feed", async (req, res) => {
         audioLength,
         duration: durationSeconds,
         artwork: epArtwork,
+        feedUrl: feedUrl,
       };
     });
 
