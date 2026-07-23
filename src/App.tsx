@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { PodcastProvider, usePodcast, Episode, PodcastInfo } from "./context/PodcastContext";
 import { BottomPlayer } from "./components/BottomPlayer";
 import { SearchCategoryGrid } from "./components/SearchCategoryGrid";
 import { PodcastDetails } from "./components/PodcastDetails";
 import * as db from "./utils/db";
+import { getLocalRecommendations, RECOMMENDATION_POOL } from "./utils/recommendations";
 import { SyncSettings } from "./components/SyncSettings";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ActivationPage } from "./components/ActivationPage";
@@ -108,6 +109,18 @@ const AppContent: React.FC = () => {
 
   // Local downloads metadata
   const [downloadedEpisodes, setDownloadedEpisodes] = useState<Episode[]>([]);
+
+  // Local dynamic recommendations (本地推荐算法)
+  const localRecs = useMemo(() => {
+    return getLocalRecommendations(subscriptions, history);
+  }, [subscriptions, history]);
+
+  // Always guaranteed recommendations list
+  const displayRecs = useMemo(() => {
+    if (localRecs && localRecs.length > 0) return localRecs;
+    if (recommendations && recommendations.length > 0) return recommendations;
+    return RECOMMENDATION_POOL;
+  }, [localRecs, recommendations]);
 
   // Fetch Curated Recommendations from Apple lookup
   useEffect(() => {
@@ -410,12 +423,51 @@ const AppContent: React.FC = () => {
                     <h2 className="text-2xl font-black text-neutral-900 dark:text-neutral-100 tracking-tight">Listen Now</h2>
                   </div>
 
+                  {/* Personalized Podcast Recommendations using Local Algorithm (Horizontal Scroll Row) */}
+                  <div className="space-y-3 pt-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left">
+                        Recommended Podcasts (为您推荐)
+                      </h3>
+                      <span className="text-[9px] font-semibold bg-[#007AFF]/10 text-[#007AFF] px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
+                        Local Recommendation
+                      </span>
+                    </div>
+
+                    <div className="flex space-x-4 overflow-x-auto pb-3 pt-1 scrollbar-none snap-x snap-mandatory -mx-6 px-6">
+                      {displayRecs.map((show, i) => (
+                        <div
+                          key={show.feedUrl || i}
+                          onClick={() => setSelectedFeedUrl(show.feedUrl)}
+                          className="flex-none w-[130px] snap-start bg-white dark:bg-neutral-900 rounded-2xl p-3 border border-neutral-100 dark:border-neutral-800 shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-98 transition-all cursor-pointer flex flex-col text-left space-y-2 select-none"
+                        >
+                          <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800">
+                            <img
+                              src={show.artwork}
+                              alt={show.title}
+                              className="w-full h-full object-cover shadow-sm"
+                              referrerPolicy="no-referrer"
+                            />
+                          </div>
+                          <div className="space-y-0.5 min-w-0">
+                            <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-200 line-clamp-1 leading-normal">
+                              {show.title}
+                            </h4>
+                            <p className="text-[10px] text-neutral-400 dark:text-neutral-500 truncate">
+                              {show.author}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Curated Recommendations or Latest Subscribed Episodes */}
                   <div className="space-y-3.5">
                     {subscriptions.length === 0 ? (
                       <>
                         <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left">
-                          Recommended Shows
+                          Featured Podcasts Grid
                         </h3>
                         
                         {recLoading ? (
@@ -425,7 +477,7 @@ const AppContent: React.FC = () => {
                           </div>
                         ) : (
                           <div className="grid grid-cols-2 gap-4">
-                            {recommendations.map((show, i) => (
+                            {displayRecs.map((show, i) => (
                               <div
                                 key={show.feedUrl || i}
                                 onClick={() => setSelectedFeedUrl(show.feedUrl)}

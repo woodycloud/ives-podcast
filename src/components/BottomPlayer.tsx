@@ -31,13 +31,16 @@ export const BottomPlayer: React.FC = () => {
     setRate,
     downloadEpisode,
     isDownloaded,
-    downloadingProgress
+    downloadingProgress,
+    sleepTimer,
+    setSleepTimer
   } = usePodcast();
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [scrubValue, setScrubValue] = useState(0);
+  const [showTimerOptions, setShowTimerOptions] = useState(false);
 
   if (!currentEpisode) return null;
 
@@ -178,101 +181,130 @@ export const BottomPlayer: React.FC = () => {
             transition={{ type: "spring", damping: 28, stiffness: 220 }}
             className="fixed inset-0 bg-white dark:bg-neutral-950 z-50 flex flex-col focus:outline-none transition-colors duration-300"
           >
-            {/* Header: drag down handler */}
-            <div className="flex items-center justify-between px-6 pt-[calc(1.5rem_+_env(safe-area-inset-top))] pb-2 border-b border-neutral-50 dark:border-neutral-900">
+            {/* Header: drag down handler, title, sleep timer & share */}
+            <div className="flex items-center justify-between px-6 pt-[calc(1.25rem_+_env(safe-area-inset-top))] pb-2 border-b border-neutral-100/60 dark:border-neutral-900">
               <button
                 id="player-dismiss"
                 onClick={() => setIsExpanded(false)}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100/80 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+                title="Dismiss player"
               >
                 <ChevronDown className="w-5 h-5" />
               </button>
-              <span className="text-xs font-semibold tracking-wider text-neutral-400 dark:text-neutral-500 uppercase">
-                Now Playing
-              </span>
-              <button
-                id="player-share"
-                onClick={handleShare}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-50 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
+              
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-bold tracking-wider text-neutral-400 dark:text-neutral-500 uppercase">
+                  Now Playing
+                </span>
+                {sleepTimer !== null && (
+                  <span className="text-[10px] font-bold bg-[#007AFF] text-white px-2 py-0.5 rounded-full animate-pulse">
+                    Timer: {Math.floor(sleepTimer / 60)}m
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  id="header-sleep-timer"
+                  onClick={() => setShowTimerOptions(true)}
+                  className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${
+                    sleepTimer !== null
+                      ? "bg-[#007AFF] text-white shadow-sm"
+                      : "bg-neutral-100/80 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+                  }`}
+                  title="Sleep Timer (睡眠定时器)"
+                >
+                  <Clock className="w-4 h-4" />
+                </button>
+                
+                <button
+                  id="player-share"
+                  onClick={handleShare}
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100/80 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+                  title="Share episode"
+                >
+                  <Share2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            {/* Immersive Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-6 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] flex flex-col justify-between max-w-xl mx-auto w-full">
+            {/* Immersive Layout Container (Not Scrollable as a whole, controls are fixed at bottom) */}
+            <div className="flex-1 flex flex-col justify-between max-w-xl mx-auto w-full min-h-0">
               
-              <AnimatePresence mode="wait">
-                {!showNotes ? (
-                  /* Music/Artwork View */
-                  <motion.div
-                    key="artwork-view"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="flex-1 flex flex-col items-center justify-center space-y-8 py-4"
-                  >
-                    {/* Big Artwork */}
-                    <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-2xl overflow-hidden shadow-2xl shadow-neutral-300 dark:shadow-none">
-                      <img
-                        src={currentEpisode.artwork}
-                        alt={currentEpisode.title}
-                        className="w-full h-full object-cover select-none"
-                        referrerPolicy="no-referrer"
-                      />
-                      {isPlaying && (
-                        <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md text-white rounded-full p-1.5 flex items-center justify-center">
-                          <Activity className="w-4 h-4 animate-pulse text-[#007AFF]" />
-                        </div>
-                      )}
-                    </div>
+              {/* Scrollable Center Portion */}
+              <div className="flex-1 overflow-y-auto px-6 py-2 flex flex-col min-h-0">
+                <AnimatePresence mode="wait">
+                  {!showNotes ? (
+                    /* Music/Artwork View */
+                    <motion.div
+                      key="artwork-view"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="flex-1 flex flex-col items-center justify-center space-y-4 sm:space-y-6 md:space-y-8 py-4"
+                    >
+                      {/* Big Artwork */}
+                      <div className="relative w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 max-h-[30vh] aspect-square rounded-2xl overflow-hidden shadow-2xl shadow-neutral-300 dark:shadow-none flex-shrink">
+                        <img
+                          src={currentEpisode.artwork}
+                          alt={currentEpisode.title}
+                          className="w-full h-full object-cover select-none"
+                          referrerPolicy="no-referrer"
+                        />
+                        {isPlaying && (
+                          <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md text-white rounded-full p-1.5 flex items-center justify-center">
+                            <Activity className="w-4 h-4 animate-pulse text-[#007AFF]" />
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Metadata */}
-                    <div className="text-center w-full px-4">
-                      <h2 className="text-lg md:text-xl font-bold text-neutral-900 dark:text-neutral-100 line-clamp-2 leading-snug tracking-tight">
-                        {currentEpisode.title}
-                      </h2>
-                      <p className="text-sm font-medium text-[#007AFF] mt-2 truncate">
-                        {currentEpisode.podcastTitle}
-                      </p>
-                    </div>
-                  </motion.div>
-                ) : (
-                  /* Episode Show Notes View */
-                  <motion.div
-                    key="notes-view"
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 15 }}
-                    className="flex-1 overflow-y-auto bg-neutral-50 dark:bg-neutral-900 rounded-2xl p-5 my-4 border border-neutral-100 dark:border-neutral-850 text-left"
-                  >
-                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-neutral-200 dark:border-neutral-800">
-                      <h3 className="font-bold text-neutral-800 dark:text-neutral-200 text-sm flex items-center">
-                        <FileText className="w-4 h-4 mr-1.5 text-neutral-500" />
-                        Episode Details / Show Notes
-                      </h3>
-                      <span className="text-[10px] text-neutral-400 dark:text-neutral-500">EPISODE NOTES</span>
-                    </div>
-                    {currentEpisode.showNotes ? (
-                      <div 
-                        className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed space-y-3 prose prose-sm dark:prose-invert max-w-none break-words"
-                        dangerouslySetInnerHTML={{ 
-                          __html: typeof currentEpisode.showNotes === "string" 
-                            ? currentEpisode.showNotes 
-                            : (currentEpisode.showNotes && typeof currentEpisode.showNotes === "object" && (currentEpisode.showNotes as any)["#text"]
-                                ? String((currentEpisode.showNotes as any)["#text"])
-                                : "")
-                        }}
-                      />
-                    ) : (
-                      <p className="text-xs text-neutral-400 dark:text-neutral-500 italic">No notes available for this episode.</p>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      {/* Metadata */}
+                      <div className="text-center w-full px-4">
+                        <h2 className="text-base sm:text-lg md:text-xl font-bold text-neutral-900 dark:text-neutral-100 line-clamp-2 leading-snug tracking-tight">
+                          {currentEpisode.title}
+                        </h2>
+                        <p className="text-xs sm:text-sm font-medium text-[#007AFF] mt-1 sm:mt-2 truncate">
+                          {currentEpisode.podcastTitle}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    /* Episode Show Notes View */
+                    <motion.div
+                      key="notes-view"
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 15 }}
+                      className="flex-1 overflow-y-auto bg-neutral-50 dark:bg-neutral-900 rounded-2xl p-5 my-4 border border-neutral-100 dark:border-neutral-850 text-left"
+                    >
+                      <div className="flex items-center justify-between mb-4 pb-2 border-b border-neutral-200 dark:border-neutral-800">
+                        <h3 className="font-bold text-neutral-800 dark:text-neutral-200 text-sm flex items-center">
+                          <FileText className="w-4 h-4 mr-1.5 text-neutral-500" />
+                          Episode Details / Show Notes
+                        </h3>
+                        <span className="text-[10px] text-neutral-400 dark:text-neutral-500">EPISODE NOTES</span>
+                      </div>
+                      {currentEpisode.showNotes ? (
+                        <div 
+                          className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed space-y-3 prose prose-sm dark:prose-invert max-w-none break-words"
+                          dangerouslySetInnerHTML={{ 
+                            __html: typeof currentEpisode.showNotes === "string" 
+                              ? currentEpisode.showNotes 
+                              : (currentEpisode.showNotes && typeof currentEpisode.showNotes === "object" && (currentEpisode.showNotes as any)["#text"]
+                                  ? String((currentEpisode.showNotes as any)["#text"])
+                                  : "")
+                          }}
+                        />
+                      ) : (
+                        <p className="text-xs text-neutral-400 dark:text-neutral-500 italic">No notes available for this episode.</p>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Player Controls Panel */}
-              <div className="space-y-6 pt-4 border-t border-neutral-50 dark:border-neutral-900">
+              <div className="flex-none space-y-4 px-6 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 border-t border-neutral-100 dark:border-neutral-900 bg-white dark:bg-neutral-950">
                 {/* Scrubbing Bar */}
                 <div className="space-y-1">
                   <input
@@ -382,10 +414,10 @@ export const BottomPlayer: React.FC = () => {
                 </div>
 
                 {/* Bottom Row Buttons (Toggle View) */}
-                <div className="flex items-center justify-center space-x-4 pt-1">
+                <div className="flex items-center justify-center space-x-3 pt-1 flex-wrap gap-y-2">
                   <button
                     onClick={() => setShowNotes(false)}
-                    className={`text-xs font-semibold px-4 py-2 rounded-full transition-all flex items-center space-x-1.5 ${
+                    className={`text-xs font-semibold px-3.5 py-2 rounded-full transition-all flex items-center space-x-1.5 ${
                       !showNotes 
                         ? "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-950 shadow-sm" 
                         : "bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
@@ -396,7 +428,7 @@ export const BottomPlayer: React.FC = () => {
                   </button>
                   <button
                     onClick={() => setShowNotes(true)}
-                    className={`text-xs font-semibold px-4 py-2 rounded-full transition-all flex items-center space-x-1.5 ${
+                    className={`text-xs font-semibold px-3.5 py-2 rounded-full transition-all flex items-center space-x-1.5 ${
                       showNotes 
                         ? "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-950 shadow-sm" 
                         : "bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
@@ -405,8 +437,98 @@ export const BottomPlayer: React.FC = () => {
                     <FileText className="w-3.5 h-3.5" />
                     <span>Show Notes</span>
                   </button>
+                  <button
+                    id="player-sleep-timer"
+                    onClick={() => setShowTimerOptions(true)}
+                    className={`text-xs font-semibold px-3.5 py-2 rounded-full transition-all flex items-center space-x-1.5 ${
+                      sleepTimer !== null 
+                        ? "bg-[#007AFF] text-white shadow-sm" 
+                        : "bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
+                    }`}
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>
+                      {sleepTimer !== null 
+                        ? `${Math.floor(sleepTimer / 60)}:${(sleepTimer % 60) < 10 ? "0" : ""}${sleepTimer % 60}`
+                        : "Sleep Timer"}
+                    </span>
+                  </button>
                 </div>
               </div>
+
+              {/* Sleep Timer Popover Drawer Overlay */}
+              <AnimatePresence>
+                {showTimerOptions && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center"
+                    onClick={() => setShowTimerOptions(false)}
+                  >
+                    <motion.div
+                      initial={{ y: "100%" }}
+                      animate={{ y: 0 }}
+                      exit={{ y: "100%" }}
+                      transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                      className="bg-white dark:bg-neutral-900 w-full max-w-md rounded-t-3xl p-6 space-y-6 text-left shadow-2xl pb-8"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-3">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-5 h-5 text-[#007AFF]" />
+                          <h3 className="font-bold text-neutral-900 dark:text-neutral-100 text-sm">
+                            Sleep Timer (睡眠定时器)
+                          </h3>
+                        </div>
+                        <button
+                          onClick={() => setShowTimerOptions(false)}
+                          className="text-xs font-semibold text-neutral-400 hover:text-[#007AFF] transition-colors"
+                        >
+                          Close
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-2 max-h-[60vh] overflow-y-auto">
+                        {[
+                          { label: "Off (关闭)", value: null },
+                          { label: "5 Minutes (5分钟)", value: 5 },
+                          { label: "15 Minutes (15分钟)", value: 15 },
+                          { label: "30 Minutes (30分钟)", value: 30 },
+                          { label: "45 Minutes (45分钟)", value: 45 },
+                          { label: "60 Minutes (60分钟)", value: 60 },
+                          { 
+                            label: "End of Episode (本集结束时)", 
+                            value: duration && currentTime < duration ? Math.max(1, Math.ceil((duration - currentTime) / 60)) : 30 
+                          },
+                        ].map((opt, idx) => {
+                          const isActive = opt.value === null 
+                            ? sleepTimer === null 
+                            : sleepTimer !== null && Math.abs(Math.ceil(sleepTimer / 60) - opt.value) <= 1;
+                          
+                          return (
+                            <button
+                              key={`${opt.label}-${idx}`}
+                              onClick={() => {
+                                setSleepTimer(opt.value);
+                                setShowTimerOptions(false);
+                              }}
+                              className={`w-full flex items-center justify-between p-3.5 rounded-xl text-xs font-semibold transition-all ${
+                                isActive
+                                  ? "bg-[#007AFF]/10 text-[#007AFF]"
+                                  : "bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-750"
+                              }`}
+                            >
+                              <span>{opt.label}</span>
+                              {isActive && <Check className="w-4 h-4 stroke-[2.5]" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
             </div>
           </motion.div>

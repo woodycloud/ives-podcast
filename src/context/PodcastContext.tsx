@@ -80,6 +80,10 @@ interface PodcastContextType {
   // Feed Caching
   getCachedFeed: (url: string) => any;
   setCachedFeed: (url: string, data: any) => void;
+
+  // Sleep Timer
+  sleepTimer: number | null;
+  setSleepTimer: (minutes: number | null) => void;
 }
 
 const PodcastContext = createContext<PodcastContextType | undefined>(undefined);
@@ -113,6 +117,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [duration, setDuration] = useState<number>(0);
   const [playbackRate, setPlaybackRate] = useState<number>(1.0);
   const [queue, setQueue] = useState<Episode[]>([]);
+  const [sleepTimer, setSleepTimerState] = useState<number | null>(null);
 
   // Audio Ref
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -221,11 +226,32 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     };
 
+    const onError = (e: Event) => {
+      console.warn("Audio element encountered error:", e);
+      const ep = currentEpisodeRef.current;
+      if (ep && audio.src && !audio.src.includes("/api/proxy-media") && ep.audioUrl) {
+        console.log("Attempting proxy fallback after audio element error...");
+        const proxySrc = `/api/proxy-media?url=${encodeURIComponent(ep.audioUrl)}`;
+        const currentTimeBeforeError = audio.currentTime || 0;
+        audio.src = proxySrc;
+        if (currentTimeBeforeError > 0) {
+          try { audio.currentTime = currentTimeBeforeError; } catch (_) {}
+        }
+        audio.play().then(() => setIsPlaying(true)).catch(err => {
+          console.error("Proxy fallback play failed:", err);
+          setIsPlaying(false);
+        });
+      } else {
+        setIsPlaying(false);
+      }
+    };
+
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("durationchange", onDurationChange);
     audio.addEventListener("ended", onEnded);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
+    audio.addEventListener("error", onError);
 
     // Load initial DB data
     const initData = async () => {
@@ -257,6 +283,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       audio.removeEventListener("ended", onEnded);
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("error", onError);
     };
   }, []);
 
@@ -564,10 +591,9 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
         audioSrc = URL.createObjectURL(localDownload.blob);
         console.log("Playing from local offline cache");
       } else {
-        // Play from live URL (proxy to bypass CORS and potential SSL/mixed content block if needed)
-        // For general playback streaming, we can use the proxy too to ensure it loads flawlessly
-        audioSrc = `/api/proxy-media?url=${encodeURIComponent(episode.audioUrl)}`;
-        console.log("Playing from live streaming proxy");
+        // Prefer direct CDN URL for zero latency and native range/hardware support
+        audioSrc = episode.audioUrl;
+        console.log("Playing directly from podcast source:", audioSrc);
       }
 
       audioRef.current.src = audioSrc;
@@ -576,12 +602,26 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Check if we have progress saved
       const savedProg = await db.getProgress(episode.guid);
       if (savedProg && !savedProg.completed && savedProg.currentTime > 5) {
-        audioRef.current.currentTime = savedProg.currentTime;
-        setCurrentTime(savedProg.currentTime);
+        try {
+          audioRef.current.currentTime = savedProg.currentTime;
+          setCurrentTime(savedProg.currentTime);
+        } catch (_) {}
       }
 
-      await audioRef.current.play();
-      setIsPlaying(true);
+      try {
+        await audioRef.current.play();
+        setIsPlaying(true);
+      } catch (directPlayErr) {
+        console.warn("Direct play failed, trying proxy fallback...", directPlayErr);
+        if (!audioSrc.includes("/api/proxy-media") && episode.audioUrl) {
+          const proxySrc = `/api/proxy-media?url=${encodeURIComponent(episode.audioUrl)}`;
+          audioRef.current.src = proxySrc;
+          await audioRef.current.play();
+          setIsPlaying(true);
+        } else {
+          throw directPlayErr;
+        }
+      }
     } catch (error) {
       console.error("Playback error:", error);
       setIsPlaying(false);
@@ -636,6 +676,32 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       audioRef.current.playbackRate = rate;
     }
   };
+
+  const setSleepTimer = (minutes: number | null) => {
+    if (minutes === null) {
+      setSleepTimerState(null);
+    } else {
+      setSleepTimerState(minutes * 60);
+    }
+  };
+
+  useEffect(() => {
+    if (sleepTimer === null || !isPlaying) return;
+
+    const interval = setInterval(() => {
+      setSleepTimerState(prev => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          clearInterval(interval);
+          pauseEpisode();
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [sleepTimer, isPlaying]);
 
   const addToQueue = (episode: Episode) => {
     setQueue(prev => {
@@ -820,6 +886,9 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         getCachedFeed,
         setCachedFeed,
+
+        sleepTimer,
+        setSleepTimer,
       }}
     >
       {children}

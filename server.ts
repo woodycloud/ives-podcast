@@ -293,7 +293,7 @@ app.get("/api/feed", async (req, res) => {
   }
 });
 
-// API: Media Proxy (Bypasses CORS for downloading audio files into IndexedDB)
+// API: Media Proxy (Bypasses CORS for downloading audio files into IndexedDB & stream playback)
 app.get("/api/proxy-media", async (req, res) => {
   const url = req.query.url as string;
   if (!url) {
@@ -301,24 +301,43 @@ app.get("/api/proxy-media", async (req, res) => {
   }
 
   try {
+    const forwardHeaders: Record<string, string> = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept": "*/*",
+    };
+
+    if (req.headers.range) {
+      forwardHeaders["Range"] = req.headers.range;
+    }
+
     const mediaRes = await fetch(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-      }
+      headers: forwardHeaders,
+      redirect: "follow",
     });
 
-    if (!mediaRes.ok) {
+    if (!mediaRes.ok && mediaRes.status !== 206) {
       return res.status(mediaRes.status).send(`Failed to fetch media from source: ${mediaRes.statusText}`);
     }
 
+    res.status(mediaRes.status);
     res.setHeader("Content-Type", mediaRes.headers.get("Content-Type") || "audio/mpeg");
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Headers", "*");
-    res.setHeader("Access-Control-Expose-Headers", "Content-Length, Content-Range");
-    
+    res.setHeader("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges");
+
     const contentLength = mediaRes.headers.get("Content-Length");
     if (contentLength) {
       res.setHeader("Content-Length", contentLength);
+    }
+
+    const contentRange = mediaRes.headers.get("Content-Range");
+    if (contentRange) {
+      res.setHeader("Content-Range", contentRange);
+    }
+
+    const acceptRanges = mediaRes.headers.get("Accept-Ranges");
+    if (acceptRanges) {
+      res.setHeader("Accept-Ranges", acceptRanges);
     }
 
     if (mediaRes.body) {
