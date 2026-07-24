@@ -38,7 +38,18 @@ export const ActivationPage: React.FC = () => {
         {/* Brand & Logo */}
         <div className="flex flex-col items-center space-y-3">
           <div className="w-16 h-16 rounded-2xl bg-white dark:bg-neutral-800 flex items-center justify-center shadow-md relative overflow-hidden ring-1 ring-neutral-200/60 dark:ring-neutral-700/60">
-            <img src="/ives-logo.png" alt="IVES Logo" className="w-full h-full object-cover" />
+            <img
+              src="/ives-logo.png"
+              alt="IVES Logo"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.dataset.triedJpg) {
+                  target.dataset.triedJpg = "true";
+                  target.src = "/ives-logo.jpg";
+                }
+              }}
+            />
           </div>
           <div className="space-y-1">
             <h1 className="font-sans font-black text-2xl tracking-tight text-neutral-900 dark:text-neutral-50">

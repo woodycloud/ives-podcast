@@ -368,6 +368,13 @@ const AppContent: React.FC = () => {
             src="/ives-logo.png"
             alt="Ives Logo"
             className="w-7 h-7 rounded-lg object-cover shadow-sm border border-neutral-200/50 dark:border-neutral-700/50"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.dataset.triedJpg) {
+                target.dataset.triedJpg = "true";
+                target.src = "/ives-logo.jpg";
+              }
+            }}
           />
           <h1 className="text-sm font-black tracking-wide text-neutral-900 dark:text-neutral-100 select-none">Ives' Podcast</h1>
         </div>
