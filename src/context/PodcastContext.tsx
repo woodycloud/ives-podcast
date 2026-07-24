@@ -345,7 +345,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const validateAndActivateKey = async (key: string): Promise<{ success: boolean; message: string }> => {
     const cleanKey = key.trim().toUpperCase();
     if (!cleanKey) {
-      return { success: false, message: "密钥不能为空。" };
+      return { success: false, message: "Key cannot be empty." };
     }
     
     try {
@@ -383,13 +383,13 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
         }
         
-        return { success: true, message: data.message || "激活成功！" };
+        return { success: true, message: data.message || "Activation successful!" };
       } else {
-        return { success: false, message: data.error || data.message || "无效的激活密钥，请联系管理员。" };
+        return { success: false, message: data.error || data.message || "Invalid activation key. Please contact support." };
       }
     } catch (err) {
       console.error("Activation request error:", err);
-      return { success: false, message: "激活请求失败，请检查网络连接。" };
+      return { success: false, message: "Activation request failed. Please check your network connection." };
     }
   };
 
@@ -558,7 +558,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Playback Progress Actions
   const saveProgressState = (guid: string, time: number, duration: number) => {
-    db.saveProgress(guid, currentEpisode?.title || "未知单集", time, duration, false);
+    db.saveProgress(guid, currentEpisode?.title || "Unknown Episode", time, duration, false);
     setPlaybackProgress(prev => ({ ...prev, [guid]: time }));
   };
 
@@ -571,7 +571,7 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       saveProgressState(currentEpisode.guid, audioRef.current.currentTime, audioRef.current.duration || currentEpisode.duration);
     }
 
-    const titleOfPodcast = podcastTitle || episode.podcastTitle || "未知节目";
+    const titleOfPodcast = podcastTitle || episode.podcastTitle || "Unknown Podcast";
     const fullEpisode = { ...episode, podcastTitle: titleOfPodcast };
     
     setCurrentEpisode(fullEpisode);

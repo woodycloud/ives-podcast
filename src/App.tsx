@@ -363,8 +363,12 @@ const AppContent: React.FC = () => {
     <div className="min-h-screen bg-neutral-50/60 dark:bg-neutral-950 pb-[calc(144px_+_env(safe-area-inset-bottom))] flex flex-col antialiased transition-colors duration-300">
       {/* Top Bar Status Monitor */}
       <header className="sticky top-0 bg-white/70 dark:bg-neutral-900/70 backdrop-blur-md border-b border-neutral-100 dark:border-neutral-800 z-30 px-6 py-3 flex items-center justify-between transition-colors duration-300">
-        <div className="flex items-center space-x-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#007AFF] animate-pulse" />
+        <div className="flex items-center space-x-2.5">
+          <img
+            src="/ives-logo.png"
+            alt="Ives Logo"
+            className="w-7 h-7 rounded-lg object-cover shadow-sm border border-neutral-200/50 dark:border-neutral-700/50"
+          />
           <h1 className="text-sm font-black tracking-wide text-neutral-900 dark:text-neutral-100 select-none">Ives' Podcast</h1>
         </div>
 
@@ -441,7 +445,7 @@ const AppContent: React.FC = () => {
                   <div className="space-y-3 pt-1">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xs font-bold text-neutral-400 tracking-wider uppercase text-left">
-                        Recommended Podcasts (为您推荐)
+                        Recommended Podcasts
                       </h3>
                       <span className="text-[9px] font-semibold bg-[#007AFF]/10 text-[#007AFF] px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
                         Local Recommendation
@@ -755,7 +759,7 @@ const AppContent: React.FC = () => {
                               : "text-neutral-400 dark:text-neutral-500 hover:text-[#FF3B30] dark:hover:text-[#FF3B30] bg-neutral-100 hover:bg-neutral-200/60 dark:bg-neutral-900 dark:hover:bg-neutral-800"
                           }`}
                         >
-                          {confirmClearLibrary ? "Are you sure?" : "一键清理 (Clear All)"}
+                          {confirmClearLibrary ? "Are you sure?" : "Clear All"}
                         </button>
                       )}
                     </div>

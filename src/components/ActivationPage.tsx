@@ -37,9 +37,8 @@ export const ActivationPage: React.FC = () => {
         
         {/* Brand & Logo */}
         <div className="flex flex-col items-center space-y-3">
-          <div className="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shadow-inner relative">
-            <Radio className="w-8 h-8 text-[#007AFF] animate-pulse" />
-            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-neutral-900"></div>
+          <div className="w-16 h-16 rounded-2xl bg-white dark:bg-neutral-800 flex items-center justify-center shadow-md relative overflow-hidden ring-1 ring-neutral-200/60 dark:ring-neutral-700/60">
+            <img src="/ives-logo.png" alt="IVES Logo" className="w-full h-full object-cover" />
           </div>
           <div className="space-y-1">
             <h1 className="font-sans font-black text-2xl tracking-tight text-neutral-900 dark:text-neutral-50">

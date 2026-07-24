@@ -225,7 +225,7 @@ export const BottomPlayer: React.FC = () => {
                       ? "bg-[#007AFF] text-white shadow-sm"
                       : "bg-neutral-100/80 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
                   }`}
-                  title="Sleep Timer (睡眠定时器)"
+                  title="Sleep Timer"
                 >
                   <Clock className="w-4 h-4" />
                 </button>
