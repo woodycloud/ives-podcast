@@ -42,6 +42,16 @@ export const BottomPlayer: React.FC = () => {
   const [scrubValue, setScrubValue] = useState(0);
   const [showTimerOptions, setShowTimerOptions] = useState(false);
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, originalUrl?: string) => {
+    const target = e.currentTarget;
+    if (!target.dataset.proxied && originalUrl) {
+      target.dataset.proxied = "true";
+      target.src = `/api/proxy-image?url=${encodeURIComponent(originalUrl)}`;
+    } else {
+      target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23007AFF'/%3E%3Ctext x='100' y='110' font-size='48' fill='white' font-family='sans-serif' font-weight='bold' text-anchor='middle'%3EPOD%3C/text%3E%3C/svg%3E";
+    }
+  };
+
   if (!currentEpisode) return null;
 
   // Formatting helper: seconds -> hh:mm:ss or mm:ss
@@ -121,6 +131,7 @@ export const BottomPlayer: React.FC = () => {
                 alt={currentEpisode.title}
                 className="w-10 h-10 rounded-lg object-cover shadow-sm bg-neutral-100 dark:bg-neutral-800"
                 referrerPolicy="no-referrer"
+                onError={(e) => handleImageError(e, currentEpisode.artwork)}
               />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-neutral-800 dark:text-neutral-100 truncate">
@@ -250,6 +261,7 @@ export const BottomPlayer: React.FC = () => {
                           alt={currentEpisode.title}
                           className="w-full h-full object-cover select-none"
                           referrerPolicy="no-referrer"
+                          onError={(e) => handleImageError(e, currentEpisode.artwork)}
                         />
                         {isPlaying && (
                           <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md text-white rounded-full p-1.5 flex items-center justify-center">

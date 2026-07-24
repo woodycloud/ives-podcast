@@ -110,17 +110,38 @@ const AppContent: React.FC = () => {
   // Local downloads metadata
   const [downloadedEpisodes, setDownloadedEpisodes] = useState<Episode[]>([]);
 
+  // Image error handling with server proxy & fallback SVG
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, originalUrl?: string) => {
+    const target = e.currentTarget;
+    if (!target.dataset.proxied && originalUrl) {
+      target.dataset.proxied = "true";
+      target.src = `/api/proxy-image?url=${encodeURIComponent(originalUrl)}`;
+    } else {
+      target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23007AFF'/%3E%3Ctext x='100' y='110' font-size='48' fill='white' font-family='sans-serif' font-weight='bold' text-anchor='middle'%3EPOD%3C/text%3E%3C/svg%3E";
+    }
+  };
+
   // Local dynamic recommendations (本地推荐算法)
   const localRecs = useMemo(() => {
     return getLocalRecommendations(subscriptions, history);
   }, [subscriptions, history]);
 
-  // Always guaranteed recommendations list
-  const displayRecs = useMemo(() => {
-    if (localRecs && localRecs.length > 0) return localRecs;
-    if (recommendations && recommendations.length > 0) return recommendations;
-    return RECOMMENDATION_POOL;
-  }, [localRecs, recommendations]);
+  // Top horizontal row recommendations (up to 6)
+  const topRecs = useMemo(() => {
+    if (localRecs && localRecs.length > 0) return localRecs.slice(0, 6);
+    return RECOMMENDATION_POOL.slice(0, 6);
+  }, [localRecs]);
+
+  // Bottom grid featured podcasts when not subscribed (guaranteed non-overlapping with top row)
+  const gridRecs = useMemo(() => {
+    const topUrls = new Set(topRecs.map(r => r.feedUrl));
+    const poolDiff = RECOMMENDATION_POOL.filter(r => !topUrls.has(r.feedUrl));
+    if (poolDiff.length >= 6) {
+      return poolDiff.slice(0, 6);
+    }
+    const recsDiff = recommendations.filter(r => !topUrls.has(r.feedUrl));
+    return recsDiff.length > 0 ? recsDiff : RECOMMENDATION_POOL.slice(6, 12);
+  }, [topRecs, recommendations]);
 
   // Fetch Curated Recommendations from Apple lookup
   useEffect(() => {
@@ -435,7 +456,7 @@ const AppContent: React.FC = () => {
                     </div>
 
                     <div className="flex space-x-4 overflow-x-auto pb-3 pt-1 scrollbar-none snap-x snap-mandatory -mx-6 px-6">
-                      {displayRecs.map((show, i) => (
+                      {topRecs.map((show, i) => (
                         <div
                           key={show.feedUrl || i}
                           onClick={() => setSelectedFeedUrl(show.feedUrl)}
@@ -447,6 +468,7 @@ const AppContent: React.FC = () => {
                               alt={show.title}
                               className="w-full h-full object-cover shadow-sm"
                               referrerPolicy="no-referrer"
+                              onError={(e) => handleImageError(e, show.artwork)}
                             />
                           </div>
                           <div className="space-y-0.5 min-w-0">
@@ -477,7 +499,7 @@ const AppContent: React.FC = () => {
                           </div>
                         ) : (
                           <div className="grid grid-cols-2 gap-4">
-                            {displayRecs.map((show, i) => (
+                            {gridRecs.map((show, i) => (
                               <div
                                 key={show.feedUrl || i}
                                 onClick={() => setSelectedFeedUrl(show.feedUrl)}
@@ -488,6 +510,7 @@ const AppContent: React.FC = () => {
                                   alt={show.title}
                                   className="w-full aspect-square rounded-xl object-cover shadow-sm bg-neutral-100 dark:bg-neutral-800"
                                   referrerPolicy="no-referrer"
+                                  onError={(e) => handleImageError(e, show.artwork)}
                                 />
                                 <div className="space-y-0.5">
                                   <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-200 line-clamp-1 leading-normal">

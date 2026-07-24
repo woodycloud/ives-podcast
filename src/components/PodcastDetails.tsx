@@ -119,6 +119,16 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
     );
   }
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, originalUrl?: string) => {
+    const target = e.currentTarget;
+    if (!target.dataset.proxied && originalUrl) {
+      target.dataset.proxied = "true";
+      target.src = `/api/proxy-image?url=${encodeURIComponent(originalUrl)}`;
+    } else {
+      target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23007AFF'/%3E%3Ctext x='100' y='110' font-size='48' fill='white' font-family='sans-serif' font-weight='bold' text-anchor='middle'%3EPOD%3C/text%3E%3C/svg%3E";
+    }
+  };
+
   const isSub = isSubscribed(feedUrl);
 
   const handleSubscribeToggle = () => {
@@ -201,6 +211,7 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
           alt={podcast.title}
           className="w-36 h-36 md:w-40 md:h-40 rounded-2xl object-cover shadow-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-800"
           referrerPolicy="no-referrer"
+          onError={(e) => handleImageError(e, podcast.artwork)}
         />
         <div className="flex-1 space-y-3 pt-1">
           <div className="space-y-1">
