@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { usePodcast } from "../context/PodcastContext";
-import { Copy, RefreshCw, Key, Check, HelpCircle, HardDrive, Trash2, ShieldCheck } from "lucide-react";
+import { Copy, RefreshCw, Key, Check, HelpCircle, HardDrive, Trash2, ShieldCheck, Download, Upload } from "lucide-react";
 import * as db from "../utils/db";
 
 export const SyncSettings: React.FC = () => {
@@ -19,6 +19,7 @@ export const SyncSettings: React.FC = () => {
   const [copied, setCopied] = useState<boolean>(false);
   const [updating, setUpdating] = useState<boolean>(false);
   const [statusMsg, setStatusMsg] = useState<string>("");
+  const [backupMsg, setBackupMsg] = useState<string>("");
 
   const [cacheSize, setCacheSize] = useState<string>("Calculating...");
   const [autoDelete, setAutoDelete] = useState<boolean>(() => {
@@ -62,6 +63,45 @@ export const SyncSettings: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleExportBackup = async () => {
+    try {
+      const backup = await db.exportBackupData();
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `IVES_Podcast_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setBackupMsg("Backup exported successfully!");
+      setTimeout(() => setBackupMsg(""), 3000);
+    } catch (err) {
+      console.error("Export error:", err);
+      setBackupMsg("Failed to export backup.");
+    }
+  };
+
+  const handleImportBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      await db.importBackupData(data);
+      await triggerSync();
+      setBackupMsg("Backup imported and synced successfully!");
+      setTimeout(() => setBackupMsg(""), 4000);
+    } catch (err) {
+      console.error("Import error:", err);
+      setBackupMsg("Failed to import. Invalid JSON backup file.");
+    } finally {
+      e.target.value = "";
+    }
+  };
+
   const handleSyncSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputCode.trim()) return;
@@ -83,6 +123,7 @@ export const SyncSettings: React.FC = () => {
       setUpdating(false);
     }
   };
+
 
   return (
     <div className="space-y-6 text-left">
@@ -246,6 +287,47 @@ export const SyncSettings: React.FC = () => {
           </label>
         </div>
       </div>
+
+      {/* Manual Data Backup & Restore */}
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-neutral-100 dark:border-neutral-800 shadow-sm space-y-4 animate-fadeIn">
+        <h3 className="font-bold text-sm text-neutral-800 dark:text-neutral-100 flex items-center">
+          <Download className="w-4 h-4 mr-1.5 text-[#007AFF]" />
+          Data Backup & Restore (数据备份与还原)
+        </h3>
+        
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed text-left">
+          Export your entire local podcast subscriptions, listening progress, and playback history to a single JSON backup file, or restore from a previously exported backup.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <button
+            type="button"
+            onClick={handleExportBackup}
+            className="w-full py-2.5 px-4 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-100 text-xs font-bold rounded-xl active:scale-95 transition-all flex items-center justify-center space-x-2 border border-neutral-200/60 dark:border-neutral-700/60 cursor-pointer"
+          >
+            <Download className="w-4 h-4 text-[#007AFF]" />
+            <span>Export Backup (导出备份)</span>
+          </button>
+
+          <label className="w-full py-2.5 px-4 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-100 text-xs font-bold rounded-xl active:scale-95 transition-all flex items-center justify-center space-x-2 border border-neutral-200/60 dark:border-neutral-700/60 cursor-pointer">
+            <Upload className="w-4 h-4 text-[#007AFF]" />
+            <span>Import Backup (导入恢复)</span>
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImportBackup}
+              className="hidden"
+            />
+          </label>
+        </div>
+
+        {backupMsg && (
+          <p className="text-[11px] font-medium text-center text-[#007AFF] bg-[#007AFF]/10 p-2.5 rounded-lg border border-[#007AFF]/20 animate-fadeIn">
+            {backupMsg}
+          </p>
+        )}
+      </div>
+
 
       {/* Offline capability explanation */}
       <div className="bg-neutral-100/60 dark:bg-neutral-900/40 rounded-2xl p-4 border border-neutral-100 dark:border-neutral-800 flex items-start space-x-3">

@@ -152,6 +152,7 @@ export const BottomPlayer: React.FC = () => {
               {/* Play / Pause */}
               <button
                 id="min-play-pause"
+                aria-label={isPlaying ? "Pause episode" : "Play episode"}
                 onClick={(e) => {
                   e.stopPropagation();
                   togglePlay();
@@ -168,6 +169,7 @@ export const BottomPlayer: React.FC = () => {
               {/* Skip Forward 15s */}
               <button
                 id="min-skip-forward"
+                aria-label="Skip forward 15 seconds"
                 onClick={(e) => {
                   e.stopPropagation();
                   skipForward();
@@ -388,6 +390,7 @@ export const BottomPlayer: React.FC = () => {
                     {/* Skip Back 15s */}
                     <button
                       onClick={skipBackward}
+                      aria-label="Skip backward 15 seconds"
                       className="w-12 h-12 rounded-full flex items-center justify-center text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 active:scale-90 transition-all"
                     >
                       <RotateCcw className="w-5 h-5" />
@@ -396,6 +399,7 @@ export const BottomPlayer: React.FC = () => {
                     {/* Central Play/Pause button */}
                     <button
                       onClick={togglePlay}
+                      aria-label={isPlaying ? "Pause episode" : "Play episode"}
                       className="w-18 h-18 rounded-full flex items-center justify-center bg-neutral-950 dark:bg-neutral-100 hover:bg-neutral-900 dark:hover:bg-neutral-200 text-white dark:text-neutral-950 shadow-xl shadow-neutral-950/20 dark:shadow-none active:scale-95 transition-all"
                     >
                       {isPlaying ? (
@@ -408,6 +412,7 @@ export const BottomPlayer: React.FC = () => {
                     {/* Skip Forward 15s */}
                     <button
                       onClick={skipForward}
+                      aria-label="Skip forward 15 seconds"
                       className="w-12 h-12 rounded-full flex items-center justify-center text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 active:scale-90 transition-all"
                     >
                       <RotateCw className="w-5 h-5" />
@@ -418,6 +423,7 @@ export const BottomPlayer: React.FC = () => {
                   <div className="w-12 flex justify-end">
                     <button
                       onClick={nextRate}
+                      aria-label={`Playback speed, currently ${playbackRate}x`}
                       className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 active:scale-95 transition-all font-mono"
                     >
                       {playbackRate}x

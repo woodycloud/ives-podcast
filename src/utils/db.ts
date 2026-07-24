@@ -446,3 +446,56 @@ export async function clearAllHistory(): Promise<void> {
     }
   });
 }
+
+// Backup & Restore
+export interface BackupData {
+  version: number;
+  exportedAt: number;
+  subscriptions: Subscription[];
+  history: PlaybackHistory[];
+  progress: PlaybackProgress[];
+}
+
+export async function exportBackupData(): Promise<BackupData> {
+  const subscriptions = await getAllSubscriptions();
+  const history = await getAllHistory();
+  const progress = await getAllProgress();
+
+  return {
+    version: 1,
+    exportedAt: Date.now(),
+    subscriptions,
+    history,
+    progress
+  };
+}
+
+export async function importBackupData(data: BackupData): Promise<void> {
+  if (!data || typeof data !== "object") {
+    throw new Error("Invalid backup file format");
+  }
+
+  if (Array.isArray(data.subscriptions)) {
+    for (const sub of data.subscriptions) {
+      if (sub.feedUrl && sub.title) {
+        await saveSubscription(sub);
+      }
+    }
+  }
+
+  if (Array.isArray(data.history)) {
+    for (const item of data.history) {
+      if (item.guid && item.title) {
+        await saveHistory(item);
+      }
+    }
+  }
+
+  if (Array.isArray(data.progress)) {
+    for (const prog of data.progress) {
+      if (prog.guid) {
+        await saveProgress(prog.guid, prog.title, prog.currentTime, prog.duration, prog.completed);
+      }
+    }
+  }
+}
