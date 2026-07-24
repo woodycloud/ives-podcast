@@ -83,62 +83,6 @@ function isKeyValid(key: string): boolean {
 // Fallback podcasts for search & lookup when iTunes API is unavailable or slow
 const FALLBACK_PODCASTS = [
   {
-    trackId: 1259169493,
-    collectionName: "故事FM (Story FM)",
-    artistName: "故事FM",
-    feedUrl: "https://feed.xyzcdn.net/storyfm",
-    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/a4/be/13/a4be139e-d311-66ca-68e1-5b7fb5570fa5/mza_10385972828458739679.jpg/600x600bb.jpg",
-    genres: ["Society & Culture", "Storytelling", "社会与文化"]
-  },
-  {
-    trackId: 1198642398,
-    collectionName: "声东击西 (ETW)",
-    artistName: "声动活泼",
-    feedUrl: "https://feed.xyzcdn.net/shengdongjixi",
-    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/58/b5/e0/58b5e003-81b3-6bf2-72e2-95f32b8fa21a/mza_13491456249568779948.jpg/600x600bb.jpg",
-    genres: ["Technology", "Culture", "科技与文化"]
-  },
-  {
-    trackId: 1551829399,
-    collectionName: "知行小酒馆",
-    artistName: "有知有行",
-    feedUrl: "https://feed.xyzcdn.net/zhixingxiaojiuguan",
-    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/0f/f2/36/0ff236e7-00f7-66a7-ae7c-87b640e74f33/mza_16616421459463999902.jpg/600x600bb.jpg",
-    genres: ["Business", "Finance", "商业与理财"]
-  },
-  {
-    trackId: 1081559811,
-    collectionName: "机核 GADIO 游戏广播",
-    artistName: "机核 GCORES",
-    feedUrl: "https://feed.xyzcdn.net/gcores",
-    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/e0/75/84/e0758410-b3e1-7ecf-4da3-0b70a7b46944/mza_10815598115685790473.jpg/600x600bb.jpg",
-    genres: ["Gaming", "Culture", "游戏与文化"]
-  },
-  {
-    trackId: 1386221527,
-    collectionName: "忽左忽右",
-    artistName: "JustPod",
-    feedUrl: "https://feed.xyzcdn.net/huzuohuyou",
-    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/5f/be/32/5fbe328c-e6bf-0442-5f65-24b58bd4162e/mza_3862215277894206584.jpg/600x600bb.jpg",
-    genres: ["History", "Culture", "历史与文化"]
-  },
-  {
-    trackId: 1197837775,
-    collectionName: "不合时宜",
-    artistName: "不合时宜",
-    feedUrl: "https://feed.xyzcdn.net/buheshiyi",
-    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/95/92/83/959283e3-7729-23c8-6936-a3ee27e7ca7f/mza_11978377759501552599.jpg/600x600bb.jpg",
-    genres: ["Society", "Culture", "社会观察"]
-  },
-  {
-    trackId: 1551065637,
-    collectionName: "半拿铁 | 商业故事电台",
-    artistName: "刘飞、潇磊",
-    feedUrl: "https://feed.xyzcdn.net/semilatte",
-    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/cf/e6/7d/cfe67dae-df47-f472-8d7b-918933b9b4f9/mza_15510656376510343759.jpg/600x600bb.jpg",
-    genres: ["Business", "History", "商业历史"]
-  },
-  {
     trackId: 1200361736,
     collectionName: "The Daily",
     artistName: "The New York Times",
@@ -169,6 +113,38 @@ const FALLBACK_PODCASTS = [
     feedUrl: "https://lexfridman.com/feed/podcast/",
     artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/b9/3d/8c/b93d8c1e-35ee-a859-9742-124b89f816c1/mza_14533088922370868884.jpg/600x600bb.jpg",
     genres: ["Technology", "AI", "Philosophy"]
+  },
+  {
+    trackId: 831498305,
+    collectionName: "Planet Money",
+    artistName: "NPR",
+    feedUrl: "https://feeds.npr.org/510289/podcast.xml",
+    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/db/4b/56/db4b56f8-4127-ec17-3bf7-2da304896e00/mza_8314983050017122822.jpg/600x600bb.jpg",
+    genres: ["Business", "Economics"]
+  },
+  {
+    trackId: 1519098939,
+    collectionName: "Waveform: The MKBHD Podcast",
+    artistName: "Vox Media Podcast Network",
+    feedUrl: "https://feeds.megaphone.fm/VMPN1745917899",
+    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/be/81/2a/be812a20-a292-6f2c-e145-2f96e2e0fb56/mza_15190989397683416049.jpg/600x600bb.jpg",
+    genres: ["Technology", "Gadgets"]
+  },
+  {
+    trackId: 1637375685,
+    collectionName: "Philosophize This!",
+    artistName: "Stephen West",
+    feedUrl: "https://philosophizethis.libsyn.com/rss",
+    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/df/e0/75/dfe075fb-68df-4da3-aa55-2fffa66c303f/mza_16373756858273618146.jpg/600x600bb.jpg",
+    genres: ["Philosophy", "History"]
+  },
+  {
+    trackId: 1012970591,
+    collectionName: "Stuff You Should Know",
+    artistName: "iHeartPodcasts",
+    feedUrl: "https://www.omnycontent.com/d/playlist/e73c991e-2401-4990-b14a-9e1100e44c22/a3348612-4217-48f8-80f0-a9b00028a306/6620ca62-3fc4-475a-b6df-a9b00028a314/podcast.rss",
+    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/1e/8c/6f/1e8c6f1c-7201-1ee7-7fb4-0fa735079860/mza_1012970591572973752.jpg/600x600bb.jpg",
+    genres: ["Society & Culture", "Education"]
   }
 ];
 

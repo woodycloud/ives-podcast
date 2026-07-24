@@ -496,7 +496,7 @@ export const BottomPlayer: React.FC = () => {
                         <div className="flex items-center space-x-2">
                           <Clock className="w-5 h-5 text-[#007AFF]" />
                           <h3 className="font-bold text-neutral-900 dark:text-neutral-100 text-sm">
-                            Sleep Timer (睡眠定时器)
+                            Sleep Timer
                           </h3>
                         </div>
                         <button
@@ -509,14 +509,14 @@ export const BottomPlayer: React.FC = () => {
 
                       <div className="grid grid-cols-1 gap-2 max-h-[60vh] overflow-y-auto">
                         {[
-                          { label: "Off (关闭)", value: null },
-                          { label: "5 Minutes (5分钟)", value: 5 },
-                          { label: "15 Minutes (15分钟)", value: 15 },
-                          { label: "30 Minutes (30分钟)", value: 30 },
-                          { label: "45 Minutes (45分钟)", value: 45 },
-                          { label: "60 Minutes (60分钟)", value: 60 },
+                          { label: "Off", value: null },
+                          { label: "5 Minutes", value: 5 },
+                          { label: "15 Minutes", value: 15 },
+                          { label: "30 Minutes", value: 30 },
+                          { label: "45 Minutes", value: 45 },
+                          { label: "60 Minutes", value: 60 },
                           { 
-                            label: "End of Episode (本集结束时)", 
+                            label: "End of Episode", 
                             value: duration && currentTime < duration ? Math.max(1, Math.ceil((duration - currentTime) / 60)) : 30 
                           },
                         ].map((opt, idx) => {

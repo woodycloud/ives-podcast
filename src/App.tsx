@@ -121,7 +121,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  // Local dynamic recommendations (本地推荐算法)
+  // Local dynamic recommendations
   const localRecs = useMemo(() => {
     return getLocalRecommendations(subscriptions, history);
   }, [subscriptions, history]);
@@ -148,10 +148,10 @@ const AppContent: React.FC = () => {
     const fetchRecommendations = async () => {
       setRecLoading(true);
       try {
-        // Look up top Chinese and overseas podcasts:
-        // 1259169493 (故事FM), 1198642398 (声东击西), 1551829399 (知行小酒馆),
-        // 1200361736 (The Daily), 1133320066 (TED Talks Daily), 1545953110 (Huberman Lab), 1434243584 (Lex Fridman)
-        const response = await fetch("/api/lookup?id=1259169493,1198642398,1551829399,1200361736,1133320066,1545953110,1434243584");
+        // Look up top curated English podcasts:
+        // 1200361736 (The Daily), 1133320066 (TED Talks Daily), 1545953110 (Huberman Lab),
+        // 1434243584 (Lex Fridman), 831498305 (Planet Money), 1519098939 (Waveform)
+        const response = await fetch("/api/lookup?id=1200361736,1133320066,1545953110,1434243584,831498305,1519098939");
         if (response.ok) {
           const data = await response.json();
           const results = data.results || [];
@@ -168,22 +168,8 @@ const AppContent: React.FC = () => {
         }
       } catch (err) {
         console.error("Recommendations lookup failed, falling back to static metadata", err);
-        // Robust fallback data with both Chinese and mainstream overseas/English podcasts
+        // Robust fallback data with top curated English podcasts
         setRecommendations([
-          {
-            title: "Story FM (故事FM)",
-            author: "Story FM",
-            artwork: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/a4/be/13/a4be139e-d311-66ca-68e1-5b7fb5570fa5/mza_10385972828458739679.jpg/600x600bb.jpg",
-            feedUrl: "https://feed.xyzcdn.net/storyfm",
-            description: "Society & Culture"
-          },
-          {
-            title: "声东击西 (ETW)",
-            author: "声动活泼",
-            artwork: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/58/b5/e0/58b5e003-81b3-6bf2-72e2-95f32b8fa21a/mza_13491456249568779948.jpg/600x600bb.jpg",
-            feedUrl: "https://feed.xyzcdn.net/shengdongjixi",
-            description: "Tech & Culture"
-          },
           {
             title: "The Daily",
             author: "The New York Times",
@@ -213,11 +199,18 @@ const AppContent: React.FC = () => {
             description: "Tech, Intelligence & Society"
           },
           {
-            title: "知行小酒馆",
-            author: "有知有行",
-            artwork: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/a3/52/65/a352652b-4ba5-728b-6ef9-7681f21172a5/mza_17208753239274294471.jpg/600x600bb.jpg",
-            feedUrl: "https://feed.xyzcdn.net/zhixingxiaojiuguan",
-            description: "Business & Finance"
+            title: "Planet Money",
+            author: "NPR",
+            artwork: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/db/4b/56/db4b56f8-4127-ec17-3bf7-2da304896e00/mza_8314983050017122822.jpg/600x600bb.jpg",
+            feedUrl: "https://feeds.npr.org/510289/podcast.xml",
+            description: "Business & Economics"
+          },
+          {
+            title: "Waveform: The MKBHD Podcast",
+            author: "Vox Media Podcast Network",
+            artwork: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/be/81/2a/be812a20-a292-6f2c-e145-2f96e2e0fb56/mza_15190989397683416049.jpg/600x600bb.jpg",
+            feedUrl: "https://feeds.megaphone.fm/VMPN1745917899",
+            description: "Technology & Gadgets"
           }
         ]);
       } finally {

@@ -25,7 +25,7 @@ export const ActivationPage: React.FC = () => {
         setErrorMsg(result.message);
       }
     } catch (err) {
-      setErrorMsg("请求失败，请检查网络是否正常。");
+      setErrorMsg("Request failed. Please check your network connection.");
     } finally {
       setLoading(false);
     }

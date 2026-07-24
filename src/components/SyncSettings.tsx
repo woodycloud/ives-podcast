@@ -210,11 +210,11 @@ export const SyncSettings: React.FC = () => {
         )}
       </div>
 
-      {/* 自动离线空间管理 */}
+      {/* Automatic Cache Management */}
       <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-neutral-100 dark:border-neutral-800 shadow-sm space-y-4 animate-fadeIn">
         <h3 className="font-bold text-sm text-neutral-800 dark:text-neutral-100 flex items-center">
           <HardDrive className="w-4 h-4 mr-1.5 text-[#007AFF]" />
-          Automatic Cache Management (自动离线空间管理)
+          Automatic Cache Management
         </h3>
         
         <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed text-left">
@@ -253,7 +253,7 @@ export const SyncSettings: React.FC = () => {
                 className="px-3.5 py-2 bg-neutral-100 hover:bg-red-50 dark:bg-neutral-800 dark:hover:bg-red-950/20 text-neutral-600 dark:text-neutral-300 hover:text-[#FF3B30] dark:hover:text-[#FF3B30] text-[11px] font-bold rounded-xl active:scale-95 transition-all flex items-center space-x-1.5 border border-neutral-200/50 dark:border-neutral-700/50 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>一键清理缓存 (Clear Cache)</span>
+                <span>Clear Cache</span>
               </button>
             )
           ) : (
@@ -292,7 +292,7 @@ export const SyncSettings: React.FC = () => {
       <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 border border-neutral-100 dark:border-neutral-800 shadow-sm space-y-4 animate-fadeIn">
         <h3 className="font-bold text-sm text-neutral-800 dark:text-neutral-100 flex items-center">
           <Download className="w-4 h-4 mr-1.5 text-[#007AFF]" />
-          Data Backup & Restore (数据备份与还原)
+          Data Backup & Restore
         </h3>
         
         <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed text-left">
@@ -306,12 +306,12 @@ export const SyncSettings: React.FC = () => {
             className="w-full py-2.5 px-4 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-100 text-xs font-bold rounded-xl active:scale-95 transition-all flex items-center justify-center space-x-2 border border-neutral-200/60 dark:border-neutral-700/60 cursor-pointer"
           >
             <Download className="w-4 h-4 text-[#007AFF]" />
-            <span>Export Backup (导出备份)</span>
+            <span>Export Backup</span>
           </button>
 
           <label className="w-full py-2.5 px-4 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-100 text-xs font-bold rounded-xl active:scale-95 transition-all flex items-center justify-center space-x-2 border border-neutral-200/60 dark:border-neutral-700/60 cursor-pointer">
             <Upload className="w-4 h-4 text-[#007AFF]" />
-            <span>Import Backup (导入恢复)</span>
+            <span>Import Backup</span>
             <input
               type="file"
               accept=".json"
