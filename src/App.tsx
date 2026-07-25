@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import logoImg from "./assets/images/pwa_icon_large_1784379537025.jpg";
 import { PodcastProvider, usePodcast, Episode, PodcastInfo } from "./context/PodcastContext";
 import { BottomPlayer } from "./components/BottomPlayer";
 import { SearchCategoryGrid } from "./components/SearchCategoryGrid";
@@ -365,14 +366,13 @@ const AppContent: React.FC = () => {
       <header className="sticky top-0 bg-white/70 dark:bg-neutral-900/70 backdrop-blur-md border-b border-neutral-100 dark:border-neutral-800 z-30 px-6 py-3 flex items-center justify-between transition-colors duration-300">
         <div className="flex items-center space-x-2.5">
           <img
-            src="/ives-logo.png"
+            src={logoImg}
             alt="Ives Logo"
             className="w-7 h-7 rounded-lg object-cover shadow-sm border border-neutral-200/50 dark:border-neutral-700/50"
             onError={(e) => {
               const target = e.currentTarget;
-              if (!target.dataset.triedJpg) {
-                target.dataset.triedJpg = "true";
-                target.src = "/ives-logo.jpg";
+              if (target.src !== "/icon_192.png") {
+                target.src = "/icon_192.png";
               }
             }}
           />
