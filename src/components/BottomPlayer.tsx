@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { usePodcast, Episode } from "../context/PodcastContext";
+import { AudioWaveformVisualizer, MiniAudioEqualizer } from "./AudioWaveformVisualizer";
 import { 
   Play, 
   Pause, 
@@ -118,24 +119,32 @@ export const BottomPlayer: React.FC = () => {
             className="fixed bottom-[calc(72px_+_env(safe-area-inset-bottom))] left-4 right-4 h-16 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-100 dark:border-neutral-800 rounded-2xl shadow-lg shadow-neutral-100/40 dark:shadow-none px-3 flex items-center justify-between cursor-pointer z-40 select-none transition-all duration-300"
           >
             {/* Visual audio progress bar along the very bottom of min player */}
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-neutral-100 dark:bg-neutral-800 rounded-b-2xl overflow-hidden">
+            <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-neutral-100 dark:bg-neutral-800 rounded-b-2xl overflow-hidden">
               <div 
-                className="h-full bg-neutral-900 dark:bg-neutral-100 transition-all duration-100 ease-out"
+                className="h-full bg-[#007AFF] transition-all duration-100 ease-out shadow-[0_0_8px_rgba(0,122,255,0.6)]"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
 
             <div className="flex items-center space-x-3 min-w-0 flex-1">
-              <img
-                src={currentEpisode.artwork}
-                alt={currentEpisode.title}
-                className="w-10 h-10 rounded-lg object-cover shadow-sm bg-neutral-100 dark:bg-neutral-800"
-                referrerPolicy="no-referrer"
-                onError={(e) => handleImageError(e, currentEpisode.artwork)}
-              />
+              <div className="relative flex-shrink-0">
+                <img
+                  src={currentEpisode.artwork}
+                  alt={currentEpisode.title}
+                  className="w-10 h-10 rounded-lg object-cover shadow-sm bg-neutral-100 dark:bg-neutral-800"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => handleImageError(e, currentEpisode.artwork)}
+                />
+                {isPlaying && (
+                  <div className="absolute -bottom-1 -right-1 bg-neutral-900/90 dark:bg-neutral-950/90 rounded-full p-0.5 border border-white/20 shadow-sm">
+                    <MiniAudioEqualizer isPlaying={isPlaying} className="w-3.5 h-3" />
+                  </div>
+                )}
+              </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-neutral-800 dark:text-neutral-100 truncate">
-                  {currentEpisode.title}
+                <p className="text-xs font-semibold text-neutral-800 dark:text-neutral-100 truncate flex items-center gap-1.5">
+                  <span className="truncate">{currentEpisode.title}</span>
+                  {isPlaying && <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-[#007AFF] animate-ping" />}
                 </p>
                 <p className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate flex items-center">
                   <span>{currentEpisode.podcastTitle || "Unknown Podcast"}</span>
@@ -319,39 +328,45 @@ export const BottomPlayer: React.FC = () => {
 
               {/* Player Controls Panel */}
               <div className="flex-none space-y-4 px-6 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 border-t border-neutral-100 dark:border-neutral-900 bg-white dark:bg-neutral-950">
-                {/* Scrubbing Bar */}
-                <div className="space-y-1">
-                  <input
-                    type="range"
-                    min="0"
-                    max={duration || 100}
-                    value={isScrubbing ? scrubValue : currentTime}
-                    onMouseDown={() => {
+                {/* SVG Audio Waveform Scrubbing Bar */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[10px] font-bold text-neutral-400 dark:text-neutral-500 px-1 uppercase tracking-wider">
+                    <div className="flex items-center space-x-1.5">
+                      <MiniAudioEqualizer isPlaying={isPlaying} />
+                      <span>Audio Waveform</span>
+                    </div>
+                    {isPlaying && (
+                      <span className="text-[#007AFF] animate-pulse font-mono">
+                        Live Spectrum
+                      </span>
+                    )}
+                  </div>
+
+                  <AudioWaveformVisualizer
+                    duration={duration || 100}
+                    currentTime={currentTime}
+                    isPlaying={isPlaying}
+                    isScrubbing={isScrubbing}
+                    scrubValue={scrubValue}
+                    seed={currentEpisode.guid || currentEpisode.title}
+                    onSeek={(time) => {
+                      seekTo(time);
+                    }}
+                    onScrubStart={() => {
                       setIsScrubbing(true);
                       setScrubValue(currentTime);
                     }}
-                    onTouchStart={() => {
-                      setIsScrubbing(true);
-                      setScrubValue(currentTime);
+                    onScrubEnd={(time) => {
+                      seekTo(time);
+                      setIsScrubbing(false);
                     }}
-                    onChange={handleProgressChange}
-                    onMouseUp={() => {
-                      if (isScrubbing) {
-                        seekTo(scrubValue);
-                        setIsScrubbing(false);
-                      }
-                    }}
-                    onTouchEnd={() => {
-                      if (isScrubbing) {
-                        seekTo(scrubValue);
-                        setIsScrubbing(false);
-                      }
-                    }}
-                    className="w-full h-[5px] bg-neutral-100 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-neutral-900 dark:accent-neutral-100 outline-none hover:accent-[#007AFF] transition-all"
+                    height={44}
+                    barCount={54}
                   />
+
                   <div className="flex justify-between text-[11px] font-medium text-neutral-400 dark:text-neutral-500 px-1 font-mono">
                     <span>{formatTime(isScrubbing ? scrubValue : currentTime)}</span>
-                    <span>-{formatTime(duration - (isScrubbing ? scrubValue : currentTime))}</span>
+                    <span>-{formatTime(Math.max(0, duration - (isScrubbing ? scrubValue : currentTime)))}</span>
                   </div>
                 </div>
 
