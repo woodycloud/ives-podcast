@@ -321,6 +321,10 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key: cleanId })
       });
+      const ct = res.headers.get("content-type");
+      if (!ct || !ct.includes("application/json")) {
+        return false;
+      }
       const data = await res.json();
       if (!res.ok || !data.valid) {
         return false;
@@ -357,6 +361,11 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
         body: JSON.stringify({ key: cleanKey }),
       });
       
+      const ct = response.headers.get("content-type");
+      if (!ct || !ct.includes("application/json")) {
+        return { success: false, message: "Activation server returned invalid response. Please try again." };
+      }
+
       const data = await response.json();
       if (response.ok && data.valid) {
         localStorage.setItem("min_podcast_user_id", cleanKey);
@@ -368,7 +377,8 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (navigator.onLine) {
           try {
             const syncRes = await fetch(`/api/sync?userId=${encodeURIComponent(cleanKey)}`);
-            if (syncRes.ok) {
+            const syncCt = syncRes.headers.get("content-type");
+            if (syncRes.ok && syncCt && syncCt.includes("application/json")) {
               const syncData = await syncRes.json();
               if (syncData.subscriptions && syncData.subscriptions.length > 0) {
                 for (const sub of syncData.subscriptions) {
@@ -407,7 +417,10 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!forceOverwriteServer) {
         // 2. Fetch remote subscriptions from server
         const response = await fetch(`/api/sync?userId=${encodeURIComponent(targetId)}`);
-        if (!response.ok) throw new Error("Sync failed");
+        const ct = response.headers.get("content-type");
+        if (!response.ok || !ct || !ct.includes("application/json")) {
+          throw new Error("Sync GET failed: invalid response format or unauthorized");
+        }
         const data = await response.json();
         const remoteSubs: PodcastInfo[] = data.subscriptions || [];
 
@@ -444,10 +457,13 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
         })
       });
 
-      if (!saveResponse.ok) throw new Error("Failed to save remote sync");
+      const saveCt = saveResponse.headers.get("content-type");
+      if (!saveResponse.ok || !saveCt || !saveCt.includes("application/json")) {
+        throw new Error("Failed to save remote sync");
+      }
       setSyncStatus("success");
-    } catch (error) {
-      console.error("Sync error:", error);
+    } catch (error: any) {
+      console.error("Sync error:", error?.message || error);
       setSyncStatus("error");
     }
   };
@@ -750,7 +766,8 @@ export const PodcastProvider: React.FC<{ children: React.ReactNode }> = ({ child
       let feedData = getCachedFeed(feedUrl);
       if (!feedData) {
         const response = await fetch(`/api/feed?url=${encodeURIComponent(feedUrl)}`);
-        if (response.ok) {
+        const ct = response.headers.get("content-type");
+        if (response.ok && ct && ct.includes("application/json")) {
           feedData = await response.json();
           setCachedFeed(feedUrl, feedData);
         }

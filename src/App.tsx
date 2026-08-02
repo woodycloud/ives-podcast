@@ -343,7 +343,8 @@ const AppContent: React.FC = () => {
       setSearchError(null);
       try {
         const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`);
-        if (!response.ok) {
+        const ct = response.headers.get("content-type");
+        if (!response.ok || !ct || !ct.includes("application/json")) {
           throw new Error("Search failed. Please try again later.");
         }
         const data = await response.json();

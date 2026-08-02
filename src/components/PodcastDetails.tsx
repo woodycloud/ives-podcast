@@ -71,7 +71,8 @@ export const PodcastDetails: React.FC<PodcastDetailsProps> = ({ feedUrl, onBack 
 
       try {
         const response = await fetch(`/api/feed?url=${encodeURIComponent(feedUrl)}`);
-        if (!response.ok) {
+        const ct = response.headers.get("content-type");
+        if (!response.ok || !ct || !ct.includes("application/json")) {
           throw new Error("Failed to parse podcast feed");
         }
         const data = await response.json();

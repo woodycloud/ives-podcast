@@ -591,6 +591,11 @@ app.post("/api/sync", (req, res) => {
   }
 });
 
+// Catch-all route for any unhandled /api/* endpoints to ensure JSON error response instead of HTML index.html
+app.all("/api/*", (req, res) => {
+  res.status(404).json({ error: `API route ${req.method} ${req.path} not found` });
+});
+
 // Start server
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
