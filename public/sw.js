@@ -1,4 +1,4 @@
-const CACHE_NAME = "ives-podcast-v5";
+const CACHE_NAME = "ives-podcast-v8";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
@@ -30,10 +30,13 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  // Skip API, iTunes Search and proxy requests so they aren't stale-cached
+  const url = event.request.url;
+
+  // Skip API, iTunes Search, proxy requests, and images from SW cache to prevent stale/broken image caches
   if (
-    event.request.url.includes("/api/") ||
-    event.request.url.includes("itunes.apple.com") ||
+    url.includes("/api/") ||
+    url.includes("itunes.apple.com") ||
+    url.match(/\.(png|jpg|jpeg|svg|webp|gif|ico)(\?.*)?$/i) ||
     event.request.method !== "GET"
   ) {
     return;
@@ -49,9 +52,9 @@ self.addEventListener("fetch", (event) => {
           // Dynamic asset caching for fonts and core UI assets
           if (
             response.status === 200 &&
-            (event.request.url.startsWith(self.location.origin) ||
-              event.request.url.includes("fonts.googleapis.com") ||
-              event.request.url.includes("fonts.gstatic.com"))
+            (url.startsWith(self.location.origin) ||
+              url.includes("fonts.googleapis.com") ||
+              url.includes("fonts.gstatic.com"))
           ) {
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then((cache) => {

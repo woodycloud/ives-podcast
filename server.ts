@@ -147,20 +147,20 @@ const FALLBACK_PODCASTS = [
     genres: ["Society & Culture", "Education", "科普", "文化"]
   },
   {
-    trackId: 1284144320,
-    collectionName: "故事FM",
-    artistName: "故事FM",
-    feedUrl: "https://feed.xyzfm.space/v1/podcast/feed/gushifm.xml",
-    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/1e/81/22/1e8122bb-6523-2895-349f-161c5cb92d4d/mza_15509747514337222162.jpg/600x600bb.jpg",
-    genres: ["故事", "社会", "真实故事", "Society & Culture"]
+    trackId: 544017218,
+    collectionName: "99% Invisible",
+    artistName: "Roman Mars",
+    feedUrl: "https://feeds.simplecast.com/BqLp3m3B",
+    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/0c/33/c0/0c33c0be-45e0-47bf-e737-0808b8b3bc1d/mza_16035071728282928509.jpg/600x600bb.jpg",
+    genres: ["Arts & Design", "Culture", "设计", "文化"]
   },
   {
-    trackId: 1461937320,
-    collectionName: "声东击西",
-    artistName: "声东击西",
-    feedUrl: "https://feed.xyzfm.space/v1/podcast/feed/etw.xml",
-    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/44/12/35/441235cb-e8a3-48ee-90a1-77114b067d5e/mza_16694851230198083815.jpg/600x600bb.jpg",
-    genres: ["文化", "社会", "新闻", "News & Politics"]
+    trackId: 1150510297,
+    collectionName: "How I Built This with Guy Raz",
+    artistName: "NPR",
+    feedUrl: "https://feeds.npr.org/510313/podcast.xml",
+    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts122/v4/d5/4b/36/d54b36d0-40e8-0b29-7977-f2736b76313f/mza_10915655760822608779.jpg/600x600bb.jpg",
+    genres: ["Business", "Society & Culture", "商业", "创业"]
   }
 ];
 
@@ -477,16 +477,34 @@ app.get("/api/proxy-media", async (req, res) => {
   }
 });
 
-// API: Image Proxy (Bypasses CORS & GFW image throttling)
+// Helper to generate clean SVG fallback for podcast artwork cover
+function generatePodcastCoverSvg(title: string = "Podcast"): string {
+  const cleanTitle = (title || "Podcast").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").substring(0, 32);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+    <rect width="600" height="600" fill="#18181b"/>
+    <circle cx="300" cy="240" r="110" fill="#007AFF" opacity="0.12"/>
+    <circle cx="300" cy="240" r="75" fill="#007AFF" opacity="0.25"/>
+    <path d="M300 175 v130 M260 205 v70 M340 205 v70 M220 220 v40 M380 220 v40" stroke="#007AFF" stroke-width="12" stroke-linecap="round"/>
+    <text x="300" y="440" fill="#FFFFFF" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="28" font-weight="800" text-anchor="middle">${cleanTitle}</text>
+    <text x="300" y="480" fill="#A1A1AA" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="18" font-weight="600" text-anchor="middle">IVES PODCAST</text>
+  </svg>`;
+}
+
+// API: Image Proxy (Bypasses CORS & GFW image throttling with SVG cover fallback)
 app.get("/api/proxy-image", async (req, res) => {
   const url = req.query.url as string;
-  if (!url) {
-    return res.status(400).send("Parameter 'url' is required");
+  const title = (req.query.title as string) || "Podcast";
+
+  if (!url || url.startsWith("data:") || url.length < 8) {
+    res.setHeader("Content-Type", "image/svg+xml");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    return res.status(200).send(generatePodcastCoverSvg(title));
   }
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), 7000);
 
     const imgRes = await fetch(url, {
       headers: {
@@ -499,22 +517,25 @@ app.get("/api/proxy-image", async (req, res) => {
     clearTimeout(timeout);
 
     if (!imgRes.ok) {
-      return res.status(imgRes.status).send("Failed to fetch image");
+      throw new Error(`Image HTTP status: ${imgRes.status}`);
     }
 
     const contentType = imgRes.headers.get("Content-Type") || "image/jpeg";
     res.setHeader("Content-Type", contentType);
-    res.setHeader("Cache-Control", "public, max-age=86400"); // Cache image for 24 hours
+    res.setHeader("Cache-Control", "public, max-age=604800, immutable");
     res.setHeader("Access-Control-Allow-Origin", "*");
 
     if (imgRes.body) {
       Readable.fromWeb(imgRes.body as any).pipe(res);
     } else {
-      res.status(500).send("No readable image body");
+      throw new Error("Empty image body");
     }
   } catch (err: any) {
-    console.error("Image proxy error:", err.message);
-    res.status(500).send("Image proxy error");
+    console.warn("Image proxy fallback to SVG cover:", url, err.message);
+    res.setHeader("Content-Type", "image/svg+xml");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.status(200).send(generatePodcastCoverSvg(title));
   }
 });
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import logoImg from "./assets/images/pwa_icon_large_1784379537025.jpg";
+import { AppLogo } from "./components/AppLogo";
 import { PodcastProvider, usePodcast, Episode, PodcastInfo } from "./context/PodcastContext";
 import { BottomPlayer } from "./components/BottomPlayer";
 import { SearchCategoryGrid } from "./components/SearchCategoryGrid";
@@ -112,13 +112,13 @@ const AppContent: React.FC = () => {
   const [downloadedEpisodes, setDownloadedEpisodes] = useState<Episode[]>([]);
 
   // Image error handling with server proxy & fallback SVG
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, originalUrl?: string) => {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, originalUrl?: string, title?: string) => {
     const target = e.currentTarget;
-    if (!target.dataset.proxied && originalUrl) {
+    if (!target.dataset.proxied && originalUrl && !originalUrl.startsWith("/api/proxy-image")) {
       target.dataset.proxied = "true";
-      target.src = `/api/proxy-image?url=${encodeURIComponent(originalUrl)}`;
+      target.src = `/api/proxy-image?url=${encodeURIComponent(originalUrl)}&title=${encodeURIComponent(title || "")}`;
     } else {
-      target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23007AFF'/%3E%3Ctext x='100' y='110' font-size='48' fill='white' font-family='sans-serif' font-weight='bold' text-anchor='middle'%3EPOD%3C/text%3E%3C/svg%3E";
+      target.src = `/api/proxy-image?title=${encodeURIComponent(title || "Podcast")}`;
     }
   };
 
@@ -394,18 +394,7 @@ const AppContent: React.FC = () => {
       {/* Top Bar Status Monitor */}
       <header className="sticky top-0 bg-white/70 dark:bg-neutral-900/70 backdrop-blur-md border-b border-neutral-100 dark:border-neutral-800 z-30 px-6 py-3 flex items-center justify-between transition-colors duration-300">
         <div className="flex items-center space-x-2.5">
-          <img
-            src={logoImg}
-            alt="Ives Logo"
-            className="w-7 h-7 rounded-lg object-cover shadow-sm border border-neutral-200/50 dark:border-neutral-700/50"
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (!target.dataset.triedFallback) {
-                target.dataset.triedFallback = "true";
-                target.src = "/ives-logo.jpg";
-              }
-            }}
-          />
+          <AppLogo size="sm" />
           <h1 className="text-sm font-black tracking-wide text-neutral-900 dark:text-neutral-100 select-none">Ives' Podcast</h1>
         </div>
 
@@ -498,11 +487,11 @@ const AppContent: React.FC = () => {
                         >
                           <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800">
                             <img
-                              src={show.artwork}
+                              src={show.artwork ? `/api/proxy-image?url=${encodeURIComponent(show.artwork)}&title=${encodeURIComponent(show.title)}` : `/api/proxy-image?title=${encodeURIComponent(show.title)}`}
                               alt={show.title}
                               className="w-full h-full object-cover shadow-sm"
                               referrerPolicy="no-referrer"
-                              onError={(e) => handleImageError(e, show.artwork)}
+                              onError={(e) => handleImageError(e, show.artwork, show.title)}
                             />
                           </div>
                           <div className="space-y-0.5 min-w-0">
@@ -540,11 +529,11 @@ const AppContent: React.FC = () => {
                                 className="bg-white dark:bg-neutral-900 rounded-2xl p-3 border border-neutral-100 dark:border-neutral-800 shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-98 transition-all cursor-pointer flex flex-col text-left space-y-2.5 select-none"
                               >
                                 <img
-                                  src={show.artwork}
+                                  src={show.artwork ? `/api/proxy-image?url=${encodeURIComponent(show.artwork)}&title=${encodeURIComponent(show.title)}` : `/api/proxy-image?title=${encodeURIComponent(show.title)}`}
                                   alt={show.title}
                                   className="w-full aspect-square rounded-xl object-cover shadow-sm bg-neutral-100 dark:bg-neutral-800"
                                   referrerPolicy="no-referrer"
-                                  onError={(e) => handleImageError(e, show.artwork)}
+                                  onError={(e) => handleImageError(e, show.artwork, show.title)}
                                 />
                                 <div className="space-y-0.5">
                                   <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-200 line-clamp-1 leading-normal">
