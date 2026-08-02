@@ -9,13 +9,13 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icon_192.png?v=ives5",
+      "src": "/icon_192.png?v=ives_v10",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon_512.png?v=ives5",
+      "src": "/icon_512.png?v=ives_v10",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
