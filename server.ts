@@ -88,7 +88,7 @@ const FALLBACK_PODCASTS = [
     artistName: "The New York Times",
     feedUrl: "https://feeds.simplecast.com/54nAGgIl",
     artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/91/3c/64/913c640c-39a7-9877-c990-252fc9969efd/mza_10777592473859600100.jpg/600x600bb.jpg",
-    genres: ["News", "Politics"]
+    genres: ["News", "Politics", "新闻", "时事"]
   },
   {
     trackId: 1133320066,
@@ -96,7 +96,7 @@ const FALLBACK_PODCASTS = [
     artistName: "TED",
     feedUrl: "https://feeds.feedburner.com/tedtalksdaily",
     artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/ae/16/81/ae168128-d88f-16b7-f0c2-3e28c460d3d5/mza_11679093405798935406.jpg/600x600bb.jpg",
-    genres: ["Science", "Education"]
+    genres: ["Science", "Education", "科学", "演讲", "教育"]
   },
   {
     trackId: 1545953110,
@@ -104,7 +104,7 @@ const FALLBACK_PODCASTS = [
     artistName: "Scicomm Media",
     feedUrl: "https://feeds.megaphone.fm/hubermanlab",
     artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/9e/75/d9/9e75d9bd-5b3a-5909-5100-8809a7ca3393/mza_16698940608552309117.jpg/600x600bb.jpg",
-    genres: ["Health", "Science"]
+    genres: ["Health", "Science", "健康", "科学", "生活"]
   },
   {
     trackId: 1434243584,
@@ -112,7 +112,7 @@ const FALLBACK_PODCASTS = [
     artistName: "Lex Fridman",
     feedUrl: "https://lexfridman.com/feed/podcast/",
     artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/b9/3d/8c/b93d8c1e-35ee-a859-9742-124b89f816c1/mza_14533088922370868884.jpg/600x600bb.jpg",
-    genres: ["Technology", "AI", "Philosophy"]
+    genres: ["Technology", "AI", "Philosophy", "科技", "人工智能", "访谈"]
   },
   {
     trackId: 831498305,
@@ -120,7 +120,7 @@ const FALLBACK_PODCASTS = [
     artistName: "NPR",
     feedUrl: "https://feeds.npr.org/510289/podcast.xml",
     artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/db/4b/56/db4b56f8-4127-ec17-3bf7-2da304896e00/mza_8314983050017122822.jpg/600x600bb.jpg",
-    genres: ["Business", "Economics"]
+    genres: ["Business", "Economics", "商业", "经济", "金融"]
   },
   {
     trackId: 1519098939,
@@ -128,7 +128,7 @@ const FALLBACK_PODCASTS = [
     artistName: "Vox Media Podcast Network",
     feedUrl: "https://feeds.megaphone.fm/VMPN1745917899",
     artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts112/v4/be/81/2a/be812a20-a292-6f2c-e145-2f96e2e0fb56/mza_15190989397683416049.jpg/600x600bb.jpg",
-    genres: ["Technology", "Gadgets"]
+    genres: ["Technology", "Gadgets", "科技", "数码"]
   },
   {
     trackId: 1637375685,
@@ -136,7 +136,7 @@ const FALLBACK_PODCASTS = [
     artistName: "Stephen West",
     feedUrl: "https://philosophizethis.libsyn.com/rss",
     artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/df/e0/75/dfe075fb-68df-4da3-aa55-2fffa66c303f/mza_16373756858273618146.jpg/600x600bb.jpg",
-    genres: ["Philosophy", "History"]
+    genres: ["Philosophy", "History", "哲学", "历史", "文化"]
   },
   {
     trackId: 1012970591,
@@ -144,7 +144,23 @@ const FALLBACK_PODCASTS = [
     artistName: "iHeartPodcasts",
     feedUrl: "https://www.omnycontent.com/d/playlist/e73c991e-2401-4990-b14a-9e1100e44c22/a3348612-4217-48f8-80f0-a9b00028a306/6620ca62-3fc4-475a-b6df-a9b00028a314/podcast.rss",
     artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/1e/8c/6f/1e8c6f1c-7201-1ee7-7fb4-0fa735079860/mza_1012970591572973752.jpg/600x600bb.jpg",
-    genres: ["Society & Culture", "Education"]
+    genres: ["Society & Culture", "Education", "科普", "文化"]
+  },
+  {
+    trackId: 1284144320,
+    collectionName: "故事FM",
+    artistName: "故事FM",
+    feedUrl: "https://feed.xyzfm.space/v1/podcast/feed/gushifm.xml",
+    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/1e/81/22/1e8122bb-6523-2895-349f-161c5cb92d4d/mza_15509747514337222162.jpg/600x600bb.jpg",
+    genres: ["故事", "社会", "真实故事", "Society & Culture"]
+  },
+  {
+    trackId: 1461937320,
+    collectionName: "声东击西",
+    artistName: "声东击西",
+    feedUrl: "https://feed.xyzfm.space/v1/podcast/feed/etw.xml",
+    artworkUrl600: "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/44/12/35/441235cb-e8a3-48ee-90a1-77114b067d5e/mza_16694851230198083815.jpg/600x600bb.jpg",
+    genres: ["文化", "社会", "新闻", "News & Politics"]
   }
 ];
 

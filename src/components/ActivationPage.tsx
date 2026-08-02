@@ -45,8 +45,9 @@ export const ActivationPage: React.FC = () => {
               className="w-full h-full object-cover"
               onError={(e) => {
                 const target = e.currentTarget;
-                if (target.src !== "/icon_192.png") {
-                  target.src = "/icon_192.png";
+                if (!target.dataset.triedFallback) {
+                  target.dataset.triedFallback = "true";
+                  target.src = "/ives-logo.jpg";
                 }
               }}
             />

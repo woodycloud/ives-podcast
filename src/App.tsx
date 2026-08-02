@@ -330,6 +330,34 @@ const AppContent: React.FC = () => {
     }
   };
 
+  // Debounced auto-search when typing
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setSearchError(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setSearchLoading(true);
+      setSearchError(null);
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        if (!response.ok) {
+          throw new Error("Search failed. Please try again later.");
+        }
+        const data = await response.json();
+        setSearchResults(data.results || []);
+      } catch (err: any) {
+        setSearchError(err.message || "Request failed. Please check your network connection.");
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   // Quick subscribe helper
   const handleQuickSubscribe = (e: React.MouseEvent, item: any) => {
     e.stopPropagation();
@@ -371,8 +399,9 @@ const AppContent: React.FC = () => {
             className="w-7 h-7 rounded-lg object-cover shadow-sm border border-neutral-200/50 dark:border-neutral-700/50"
             onError={(e) => {
               const target = e.currentTarget;
-              if (target.src !== "/icon_192.png") {
-                target.src = "/icon_192.png";
+              if (!target.dataset.triedFallback) {
+                target.dataset.triedFallback = "true";
+                target.src = "/ives-logo.jpg";
               }
             }}
           />

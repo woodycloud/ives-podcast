@@ -1,4 +1,4 @@
-const CACHE_NAME = "minimalist-podcast-cache-v3";
+const CACHE_NAME = "ives-podcast-v5";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
